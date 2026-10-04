@@ -21,7 +21,7 @@
       "name": "ラーメン",
       "category": "ラーメン",
       "price": 800,
-      "description": "標準サイズ（麺約300g・通常の約2倍）。",
+      "description": "エース標準サイズ（麺約300g・一般的なラーメンの約2倍）",
       "requiredTickets": [{ "name": "ラーメン券", "price": 800 }]
     },
     {
@@ -29,7 +29,7 @@
       "name": "ブタミニラーメン",
       "category": "ラーメン",
       "price": 900,
-      "description": "ミニラーメンに極厚チャーシュー増量。",
+      "description": "ミニラーメンに厚切りチャーシュー増量。",
       "requiredTickets": [{ "name": "ブタミニラーメン券", "price": 900 }]
     },
     {
@@ -37,7 +37,7 @@
       "name": "ブタラーメン（少なめ）",
       "category": "ラーメン",
       "price": 950,
-      "description": "少なめラーメンに極厚チャーシュー増量。",
+      "description": "少なめラーメンに厚切りチャーシュー増量。",
       "requiredTickets": [{ "name": "ブタラーメン（少なめ）券", "price": 950 }]
     },
     {
@@ -75,7 +75,7 @@
       "name": "汁なしラーメン",
       "category": "汁なし",
       "price": 900,
-      "description": "自家製極太麺と濃厚タレが絡む看板汁なし。",
+      "description": "自家製極太麺と濃厚タレが絡むパンチの汁なし。",
       "requiredTickets": [
         { "name": "ラーメン券", "price": 800 },
         { "name": "汁なし券", "price": 100 }
@@ -108,7 +108,7 @@
       "name": "汁なしブタラーメン",
       "category": "汁なし",
       "price": 1050,
-      "description": "麺も豚も贅沢に味わえる汁なしの最高峰。",
+      "description": "麺も豚も贅沢に味わえる汁なし",
       "requiredTickets": [
         { "name": "ブタラーメン券", "price": 950 },
         { "name": "汁なし券", "price": 100 }
@@ -118,7 +118,7 @@
   "toppings": {
     "free": [
       { "id": "f1", "name": "ニンニク", "price": 0 },
-      { "id": "f2", "name": "アブラ（背脂）", "price": 0 }
+      { "id": "f2", "name": "アブラ", "price": 0 }
     ],
     "paid": [
       { "id": "t1", "name": "生たまご", "price": 50, "requiredTickets": [{ "name": "生たまご券", "price": 50 }] },

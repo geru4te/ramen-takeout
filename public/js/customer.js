@@ -302,7 +302,7 @@ window.openToppingModal = function(itemId) {
     label.className = `topping-checkbox-label ${isSold ? 'sold-out' : ''}`;
     label.innerHTML = `
       <input type="checkbox" name="free-topping" value="${f.name}" ${isSold ? 'disabled' : ''} onchange="updateToppingSubtotal()">
-      <span>${f.name} (無料) ${isSold ? '<span class="soldout-tag-text">【売切】</span>' : ''}</span>
+      <span>${f.name}${isSold ? ' <span class="soldout-tag-text">【売切】</span>' : ''}</span>
     `;
     freeToppingsContainer.appendChild(label);
   });
