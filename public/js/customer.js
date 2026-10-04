@@ -731,6 +731,16 @@ function showOrderStatus(order) {
   dispTotalAmount.textContent = `¥${order.totalAmount.toLocaleString()}`;
 }
 
+function formatLocalTimeHHMM(ts) {
+  if (!ts) return null;
+  const d = new Date(ts);
+  return d.toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+
 function getRemainingTimeText(order) {
   if (!order) return '';
   if (!order.targetTimestamp) {
@@ -754,10 +764,17 @@ function updateStatusDisplay(order) {
   const timeBox = document.getElementById('disp-time-box');
   const timeVal = document.getElementById('disp-estimated-time') || document.getElementById('disp-remaining-time');
 
-  if (order.status === 'COOKING' && order.estimatedTime) {
+  // 完成予定時刻の算出（targetTimestampがある場合は端末のローカル時計で正確に日本時間フォーマット）
+  let formattedTime = order.estimatedTime;
+  if (order.targetTimestamp) {
+    formattedTime = formatLocalTimeHHMM(order.targetTimestamp);
+  }
+  const remainingText = getRemainingTimeText(order);
+
+  if (order.status === 'COOKING' && (formattedTime || order.targetTimestamp)) {
     timeBox.style.display = 'block';
     if (timeVal) {
-      timeVal.textContent = `${order.estimatedTime} 頃`;
+      timeVal.innerHTML = `${formattedTime ? `${formattedTime} 頃` : ''} <span style="font-size: 0.95rem; font-weight: normal; color: #15803d; margin-left: 6px;">(${remainingText})</span>`;
     }
   } else {
     timeBox.style.display = 'none';
@@ -772,8 +789,8 @@ function updateStatusDisplay(order) {
     case 'COOKING':
       statusText.textContent = '🍜 注文受付・調理中';
       statusText.style.color = '#2563eb';
-      statusSub.textContent = order.estimatedTime 
-        ? `厨房で注文が受け付けられ、調理中です！完成予定時刻（${order.estimatedTime}頃）を目安にご来店ください。`
+      statusSub.textContent = formattedTime 
+        ? `厨房で注文が受け付けられ、調理中です！完成予定時刻（${formattedTime}頃）を目安にご来店ください。`
         : '厨房で注文が受け付けられました！現在スタッフが調理しております。';
       break;
     case 'READY':
@@ -885,4 +902,12 @@ window.closeAppWindow = function() {
     }
   }, 200);
 };
+
+// 調理中オーダーの残り時間を10秒ごとにリアルタイム再計算
+setInterval(() => {
+  if (currentOrder && currentOrder.status === 'COOKING') {
+    updateStatusDisplay(currentOrder);
+  }
+}, 10000);
+
 
