@@ -121,52 +121,6 @@ function playNotificationSound() {
   }
 }
 
-// 厨房「注文を受ける」受付操作音（ピピッ）
-function playAcceptBeep() {
-  if (!soundEnabled) return;
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-
-    const now = ctx.currentTime;
-    [0, 0.08].forEach((offset, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(idx === 0 ? 880 : 1320, now + offset);
-      gain.gain.setValueAtTime(0.35, now + offset);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.12);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now + offset);
-      osc.stop(now + offset + 0.12);
-    });
-  } catch (e) {}
-}
-
-// 「出来上がり（呼出）」操作音（ポーン）
-function playReadyBeep() {
-  if (!soundEnabled) return;
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(987.77, now);
-    gain.gain.setValueAtTime(0.4, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.5);
-  } catch (e) {}
-}
-
 // 音声トグルボタン
 btnSoundToggle.addEventListener('click', async () => {
   await unlockAudio();
@@ -787,7 +741,6 @@ window.resetStagedMinutes = function(orderId) {
 };
 
 window.acceptOrder = async function(orderId, mins) {
-  playAcceptBeep();
   try {
     const res = await fetch(`/api/orders/${orderId}`, {
       method: 'PATCH',
@@ -840,11 +793,6 @@ window.resetEstimatedTime = async function(orderId) {
 };
 
 window.updateStatus = async function(orderId, status) {
-  if (status === 'READY') {
-    playReadyBeep();
-  } else if (status === 'COMPLETED') {
-    playAcceptBeep();
-  }
   try {
     const res = await fetch(`/api/orders/${orderId}`, {
       method: 'PATCH',

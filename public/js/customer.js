@@ -9,6 +9,63 @@ let isAcceptingOrders = true;
 
 let selectedRamen = null;
 
+// Web Audio API での出来上がり呼出チャイム
+let custAudioCtx = null;
+function getCustAudioContext() {
+  if (!custAudioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) custAudioCtx = new AudioContextClass();
+  }
+  return custAudioCtx;
+}
+
+async function unlockCustAudio() {
+  const ctx = getCustAudioContext();
+  if (ctx && ctx.state === 'suspended') {
+    try { await ctx.resume(); } catch (e) {}
+  }
+}
+['click', 'touchstart'].forEach(evt => {
+  window.addEventListener(evt, unlockCustAudio, { passive: true });
+});
+
+// 出来上がり完成チャイム音（明るい「ピンポンパンポ〜ン♪」）
+function playCustomerReadyChime() {
+  try {
+    const ctx = getCustAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+
+    // スマートフォンのバイブレーション（対応機種）
+    if ('vibrate' in navigator) {
+      try { navigator.vibrate([300, 150, 300, 150, 500]); } catch (e) {}
+    }
+
+    const playNote = (freq, startOffset, dur = 0.5, vol = 0.45) => {
+      const startTime = ctx.currentTime + startOffset;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(vol, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + dur);
+    };
+
+    // ド(523Hz) → ミ(659Hz) → ソ(784Hz) → 高いド(1046Hz)
+    const base = 0.05;
+    playNote(523.25, base, 0.45, 0.4);
+    playNote(659.25, base + 0.25, 0.45, 0.4);
+    playNote(783.99, base + 0.50, 0.45, 0.4);
+    playNote(1046.50, base + 0.75, 0.90, 0.5);
+  } catch (err) {
+    console.error('Customer ready chime error:', err);
+  }
+}
+
 // DOM要素
 const menuListView = document.getElementById('menu-order-view');
 const orderStatusView = document.getElementById('order-status-view');
@@ -528,6 +585,7 @@ function renderModalCart() {
 
 // 注文送信（名前不要・ワンタップで確定）
 btnSubmitOrder.addEventListener('click', async () => {
+  await unlockCustAudio();
   if (!isAcceptingOrders) {
     alert('只今、混雑のため予約受付を停止しております。');
     confirmModal.style.display = 'none';
@@ -743,8 +801,14 @@ function updateStatusDisplay(order) {
 
 socket.on('order:updated', (updatedOrder) => {
   if (currentOrder && currentOrder.id === updatedOrder.id) {
+    const prevStatus = currentOrder.status;
     currentOrder = updatedOrder;
     updateStatusDisplay(updatedOrder);
+
+    // 完成（READY）になった瞬間に注文画面でチャイム音を鳴らす
+    if (updatedOrder.status === 'READY' && prevStatus !== 'READY') {
+      playCustomerReadyChime();
+    }
   }
 });
 
