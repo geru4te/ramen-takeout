@@ -2,7 +2,6 @@ const socket = io();
 
 let orders = [];
 let currentFilter = 'all'; // 'all', 'RECEIVED', 'COOKING', 'READY', 'completed'
-let soundEnabled = true;
 let searchQuery = '';
 let isAcceptingOrders = true;
 const pendingMinutes = {}; // 受付前の時間調整保持用 (orderId -> 分数)
