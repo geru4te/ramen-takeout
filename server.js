@@ -98,7 +98,7 @@ function saveStoreConfig() {
   }
 }
 
-// 営業時間判定（日曜定休 / 昼 11:30〜14:30 / 夜 18:00〜22:00 JST）
+// 営業時間判定（定休日・休業時間の制限を解除中：常時受付可能）
 function checkBusinessHours() {
   const now = new Date();
   const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
@@ -107,55 +107,15 @@ function checkBusinessHours() {
   const day = jstDate.getDay(); // 0: 日曜, 1: 月曜, ..., 6: 土曜
   const hours = jstDate.getHours();
   const minutes = jstDate.getMinutes();
-  const totalMinutes = hours * 60 + minutes;
 
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
   const currentDayName = dayNames[day];
   const currentTimeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
-  // テスト用：営業時間・定休日制限の強制解除
-  if (storeConfig.forceOpenForTesting) {
-    return {
-      isOpen: true,
-      period: 'テスト営業中 (時間制限解除中)',
-      isForceOpen: true,
-      businessHoursText: '※テスト用に営業時間・定休日を解除しています',
-      currentDay: currentDayName,
-      currentTime: currentTimeStr
-    };
-  }
-
-  // 日曜日は定休日
-  if (day === 0) {
-    return {
-      isOpen: false,
-      reason: 'CLOSED_DAY',
-      message: '本日（日曜日）は定休日のため、予約受付を行っておりません。',
-      businessHoursText: '営業時間: 昼 11:30〜14:30 / 夜 18:00〜22:00（日曜定休）',
-      currentDay: currentDayName,
-      currentTime: currentTimeStr
-    };
-  }
-
-  // 昼の部: 11:30 (690分) 〜 14:30 (870分)
-  const isLunch = totalMinutes >= (11 * 60 + 30) && totalMinutes < (14 * 60 + 30);
-  // 夜の部: 18:00 (1080分) 〜 22:00 (1320分)
-  const isDinner = totalMinutes >= (18 * 60) && totalMinutes < (22 * 60);
-
-  if (isLunch || isDinner) {
-    return {
-      isOpen: true,
-      period: isLunch ? '昼の部 (11:30〜14:30)' : '夜の部 (18:00〜22:00)',
-      businessHoursText: '営業時間: 昼 11:30〜14:30 / 夜 18:00〜22:00（日曜定休）',
-      currentDay: currentDayName,
-      currentTime: currentTimeStr
-    };
-  }
-
+  // 定休日・休業時間を解除し、常時注文受付を許可
   return {
-    isOpen: false,
-    reason: 'OUT_OF_HOURS',
-    message: '只今の時間は営業時間外です。',
+    isOpen: true,
+    period: '受付中',
     businessHoursText: '営業時間: 昼 11:30〜14:30 / 夜 18:00〜22:00（日曜定休）',
     currentDay: currentDayName,
     currentTime: currentTimeStr

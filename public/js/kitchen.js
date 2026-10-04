@@ -18,7 +18,6 @@ const btnSoundToggle = document.getElementById('btn-sound-toggle');
 const inputSearch = document.getElementById('input-search-order');
 const btnToggleAccepting = document.getElementById('btn-toggle-accepting');
 const btnToggleTempClosed = document.getElementById('btn-toggle-temp-closed');
-const btnToggleForceOpen = document.getElementById('btn-toggle-force-open');
 const badgeBusinessHours = document.getElementById('badge-business-hours');
 
 let menuData = { mainMenu: [], toppings: { free: [], paid: [] } };
@@ -123,24 +122,6 @@ if (btnToggleTempClosed) {
   });
 }
 
-if (btnToggleForceOpen) {
-  btnToggleForceOpen.addEventListener('click', async () => {
-    try {
-      const res = await fetch('/api/store-status/toggle-force-open', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      });
-      if (res.ok) {
-        const data = await res.json();
-        updateAcceptingButton(data);
-      }
-    } catch (err) {
-      console.error('Failed to toggle force open:', err);
-    }
-  });
-}
-
 function updateAcceptingButton(statusData) {
   if (typeof statusData === 'boolean') {
     storeStatus.isAcceptingOrders = statusData;
@@ -166,23 +147,6 @@ function updateAcceptingButton(statusData) {
     }
   }
 
-  // テスト用：時間制限解除ボタンの表示
-  if (btnToggleForceOpen) {
-    if (storeStatus.forceOpenForTesting) {
-      btnToggleForceOpen.style.background = '#2563eb';
-      btnToggleForceOpen.style.color = '#ffffff';
-      btnToggleForceOpen.style.borderColor = '#38bdf8';
-      btnToggleForceOpen.style.fontWeight = '900';
-      btnToggleForceOpen.textContent = '時間制限: 解除中 (常時受付)';
-    } else {
-      btnToggleForceOpen.style.background = '#1e293b';
-      btnToggleForceOpen.style.color = '#94a3b8';
-      btnToggleForceOpen.style.borderColor = '#475569';
-      btnToggleForceOpen.style.fontWeight = 'normal';
-      btnToggleForceOpen.textContent = '時間制限: 有効 (テスト解除)';
-    }
-  }
-
   // 2. 営業時間バッジの更新
   if (badgeBusinessHours) {
     const bh = storeStatus.businessHours;
@@ -190,20 +154,14 @@ function updateAcceptingButton(statusData) {
       badgeBusinessHours.style.background = '#dc2626';
       badgeBusinessHours.style.color = '#fff';
       badgeBusinessHours.textContent = '臨時休業中';
-    } else if (bh) {
-      if (bh.isOpen) {
-        badgeBusinessHours.style.background = '#166534';
-        badgeBusinessHours.style.color = '#bbf7d0';
-        badgeBusinessHours.textContent = bh.period ? `営業中: ${bh.period}` : '営業時間内';
-      } else if (bh.reason === 'CLOSED_DAY') {
-        badgeBusinessHours.style.background = '#7c2d12';
-        badgeBusinessHours.style.color = '#fed7aa';
-        badgeBusinessHours.textContent = '定休日 (日曜)';
-      } else {
-        badgeBusinessHours.style.background = '#334155';
-        badgeBusinessHours.style.color = '#94a3b8';
-        badgeBusinessHours.textContent = '営業時間外';
-      }
+    } else if (bh && bh.isOpen) {
+      badgeBusinessHours.style.background = '#166534';
+      badgeBusinessHours.style.color = '#bbf7d0';
+      badgeBusinessHours.textContent = '営業中 (受付可能)';
+    } else {
+      badgeBusinessHours.style.background = '#334155';
+      badgeBusinessHours.style.color = '#94a3b8';
+      badgeBusinessHours.textContent = '受付停止中';
     }
   }
 
