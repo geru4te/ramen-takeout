@@ -6,8 +6,100 @@
   <title>【厨房タブレット】テイクアウトオーダー管理 (KDS)</title>
   <link rel="stylesheet" href="/css/style.css?v=4">
   <script src="/socket.io/socket.io.js"></script>
+  <style>
+    /* 管理者PIN認証ロック用スタイル */
+    .pin-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #64748b;
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+    .pin-dot.filled {
+      background: #38bdf8;
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+      transform: scale(1.1);
+    }
+    .pin-key-btn {
+      background: #334155;
+      color: #fff;
+      border: 1px solid #475569;
+      border-radius: 12px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      padding: 14px 0;
+      cursor: pointer;
+      transition: all 0.1s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pin-key-btn:active {
+      background: #475569;
+      transform: scale(0.95);
+    }
+    .pin-action-key {
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+    @keyframes pinShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .pin-shake {
+      animation: pinShake 0.35s ease;
+    }
+  </style>
 </head>
 <body class="kitchen-body">
+
+  <!-- 管理者PIN認証ロック画面（未認証時は全画面をガード） -->
+  <div id="kitchen-auth-overlay" style="position: fixed; inset: 0; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+    <div id="pin-card-box" style="background: #1e293b; border: 1px solid #334155; border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 360px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); text-align: center;">
+      <div style="font-size: 2.6rem; margin-bottom: 8px;">🔒</div>
+      <h2 style="color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 6px;">厨房モニター 管理者認証</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px;">管理者・スタッフ用の暗証番号を入力してください</p>
+
+      <!-- 暗証番号表示用ドット -->
+      <div id="pin-display-dots" style="display: flex; justify-content: center; gap: 16px; margin-bottom: 16px;">
+        <span class="pin-dot" id="pindot-0"></span>
+        <span class="pin-dot" id="pindot-1"></span>
+        <span class="pin-dot" id="pindot-2"></span>
+        <span class="pin-dot" id="pindot-3"></span>
+      </div>
+
+      <!-- エラーメッセージ -->
+      <div id="pin-error-msg" style="color: #ef4444; font-size: 0.88rem; font-weight: bold; min-height: 22px; margin-bottom: 12px;"></div>
+
+      <!-- テンキーパッド -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+        <button type="button" class="pin-key-btn" onclick="inputPin('1')">1</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('2')">2</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('3')">3</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('4')">4</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('5')">5</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('6')">6</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('7')">7</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('8')">8</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('9')">9</button>
+        <button type="button" class="pin-key-btn pin-action-key" onclick="clearPin()">C</button>
+        <button type="button" class="pin-key-btn" onclick="inputPin('0')">0</button>
+        <button type="button" class="pin-key-btn pin-action-key" onclick="backspacePin()">⌫</button>
+      </div>
+
+      <label style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #94a3b8; font-size: 0.85rem; cursor: pointer; user-select: none;">
+        <input type="checkbox" id="chk-remember-auth" checked style="width: 16px; height: 16px; cursor: pointer;">
+        この端末を記憶する（次回自動ログイン）
+      </label>
+      
+      <div style="margin-top: 20px; border-top: 1px solid #334155; padding-top: 14px;">
+        <a href="/" style="color: #64748b; font-size: 0.85rem; text-decoration: underline;">注文画面（お客様トップ）へ戻る</a>
+      </div>
+    </div>
+  </div>
 
   <!-- 音声有効化案内バナー（ブラウザの自動再生ブロック解除用） -->
   <div id="audio-unlock-banner" style="display: none; background: #ea580c; color: #ffffff; padding: 12px 16px; font-weight: 800; font-size: 1rem; text-align: center; cursor: pointer; border-bottom: 2px solid #c2410c; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);">
@@ -30,6 +122,11 @@
     </div>
 
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <!-- 画面ロックボタン -->
+      <button id="btn-lock-kitchen" class="header-action-btn" style="background: #334155; color: #cbd5e1;" title="画面をロックして保護">
+        🔒 ロック
+      </button>
+
       <!-- 臨時休業切替ボタン -->
       <button id="btn-toggle-temp-closed" class="btn-store-status" style="background: #1e293b; color: #94a3b8; border: 1px solid #475569;">
         臨時休業: OFF
@@ -94,6 +191,6 @@
     <!-- 動的生成される注文カード -->
   </main>
 
-  <script src="/js/kitchen.js?v=41"></script>
+  <script src="/js/kitchen.js?v=42"></script>
 </body>
 </html>

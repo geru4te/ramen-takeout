@@ -20,6 +20,114 @@ const inputSearch = document.getElementById('input-search-order');
 const btnToggleAccepting = document.getElementById('btn-toggle-accepting');
 const btnToggleTempClosed = document.getElementById('btn-toggle-temp-closed');
 const badgeBusinessHours = document.getElementById('badge-business-hours');
+const btnLockKitchen = document.getElementById('btn-lock-kitchen');
+const authOverlay = document.getElementById('kitchen-auth-overlay');
+const pinErrorMsg = document.getElementById('pin-error-msg');
+const pinCardBox = document.getElementById('pin-card-box');
+const chkRememberAuth = document.getElementById('chk-remember-auth');
+
+// 管理者PIN設定（初期PIN: 1234）
+const DEFAULT_ADMIN_PIN = '1234';
+function getAdminPin() {
+  return localStorage.getItem('ramen_admin_custom_pin') || DEFAULT_ADMIN_PIN;
+}
+
+const AUTH_STORAGE_KEY = 'ramen_kitchen_authenticated';
+let currentEnteredPin = '';
+
+// 認証チェック
+function checkKitchenAuth() {
+  const isAuthed = localStorage.getItem(AUTH_STORAGE_KEY) === 'true' || sessionStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+  if (isAuthed) {
+    if (authOverlay) authOverlay.style.display = 'none';
+  } else {
+    if (authOverlay) authOverlay.style.display = 'flex';
+    clearPin();
+  }
+}
+
+window.inputPin = function(digit) {
+  if (currentEnteredPin.length >= 4) return;
+  currentEnteredPin += digit;
+  updatePinDots();
+  if (currentEnteredPin.length === 4) {
+    setTimeout(verifyPin, 120);
+  }
+};
+
+window.backspacePin = function() {
+  if (currentEnteredPin.length > 0) {
+    currentEnteredPin = currentEnteredPin.slice(0, -1);
+    updatePinDots();
+    if (pinErrorMsg) pinErrorMsg.textContent = '';
+  }
+};
+
+window.clearPin = function() {
+  currentEnteredPin = '';
+  updatePinDots();
+  if (pinErrorMsg) pinErrorMsg.textContent = '';
+};
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById(`pindot-${i}`);
+    if (dot) {
+      if (i < currentEnteredPin.length) {
+        dot.classList.add('filled');
+      } else {
+        dot.classList.remove('filled');
+      }
+    }
+  }
+}
+
+function verifyPin() {
+  const validPin = getAdminPin();
+  if (currentEnteredPin === validPin) {
+    const remember = chkRememberAuth ? chkRememberAuth.checked : true;
+    if (remember) {
+      localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+    } else {
+      sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
+    }
+    if (authOverlay) authOverlay.style.display = 'none';
+    unlockAudio();
+  } else {
+    if (pinErrorMsg) pinErrorMsg.textContent = '暗証番号が正しくありません';
+    if (pinCardBox) {
+      pinCardBox.classList.add('pin-shake');
+      setTimeout(() => {
+        pinCardBox.classList.remove('pin-shake');
+        clearPin();
+      }, 400);
+    } else {
+      clearPin();
+    }
+  }
+}
+
+// 画面ロックボタン
+if (btnLockKitchen) {
+  btnLockKitchen.addEventListener('click', () => {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    checkKitchenAuth();
+  });
+}
+
+// キーボード入力（0-9, Backspace, Escape）
+window.addEventListener('keydown', (e) => {
+  if (authOverlay && authOverlay.style.display !== 'none') {
+    if (e.key >= '0' && e.key <= '9') {
+      inputPin(e.key);
+    } else if (e.key === 'Backspace') {
+      backspacePin();
+    } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
+      clearPin();
+    }
+  }
+});
 
 let menuData = { mainMenu: [], toppings: { free: [], paid: [] } };
 let soldOutIds = new Set();
@@ -255,6 +363,7 @@ setInterval(() => {
 }, 10000);
 
 window.addEventListener('DOMContentLoaded', async () => {
+  checkKitchenAuth();
   checkAudioStatus();
   await fetchStoreStatus();
   await fetchOrders();
