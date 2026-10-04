@@ -18,6 +18,7 @@ const btnSoundToggle = document.getElementById('btn-sound-toggle');
 const inputSearch = document.getElementById('input-search-order');
 const btnToggleAccepting = document.getElementById('btn-toggle-accepting');
 const btnToggleTempClosed = document.getElementById('btn-toggle-temp-closed');
+const btnToggleForceOpen = document.getElementById('btn-toggle-force-open');
 const badgeBusinessHours = document.getElementById('badge-business-hours');
 
 let menuData = { mainMenu: [], toppings: { free: [], paid: [] } };
@@ -122,6 +123,24 @@ if (btnToggleTempClosed) {
   });
 }
 
+if (btnToggleForceOpen) {
+  btnToggleForceOpen.addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/store-status/toggle-force-open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      if (res.ok) {
+        const data = await res.json();
+        updateAcceptingButton(data);
+      }
+    } catch (err) {
+      console.error('Failed to toggle force open:', err);
+    }
+  });
+}
+
 function updateAcceptingButton(statusData) {
   if (typeof statusData === 'boolean') {
     storeStatus.isAcceptingOrders = statusData;
@@ -144,6 +163,23 @@ function updateAcceptingButton(statusData) {
       btnToggleTempClosed.style.borderColor = '#475569';
       btnToggleTempClosed.style.fontWeight = 'normal';
       btnToggleTempClosed.textContent = '臨時休業: OFF (タップで休業)';
+    }
+  }
+
+  // テスト用：時間制限解除ボタンの表示
+  if (btnToggleForceOpen) {
+    if (storeStatus.forceOpenForTesting) {
+      btnToggleForceOpen.style.background = '#2563eb';
+      btnToggleForceOpen.style.color = '#ffffff';
+      btnToggleForceOpen.style.borderColor = '#38bdf8';
+      btnToggleForceOpen.style.fontWeight = '900';
+      btnToggleForceOpen.textContent = '時間制限: 解除中 (常時受付)';
+    } else {
+      btnToggleForceOpen.style.background = '#1e293b';
+      btnToggleForceOpen.style.color = '#94a3b8';
+      btnToggleForceOpen.style.borderColor = '#475569';
+      btnToggleForceOpen.style.fontWeight = 'normal';
+      btnToggleForceOpen.textContent = '時間制限: 有効 (テスト解除)';
     }
   }
 

@@ -74,7 +74,8 @@ let storeConfig = {
   isAcceptingOrders: true,
   pauseReason: '店内混雑のため',
   isTemporaryClosed: false,
-  temporaryClosedReason: '本日臨時休業'
+  temporaryClosedReason: '本日臨時休業',
+  forceOpenForTesting: false
 };
 
 function loadStoreConfig() {
@@ -111,6 +112,18 @@ function checkBusinessHours() {
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
   const currentDayName = dayNames[day];
   const currentTimeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+  // テスト用：営業時間・定休日制限の強制解除
+  if (storeConfig.forceOpenForTesting) {
+    return {
+      isOpen: true,
+      period: 'テスト営業中 (時間制限解除中)',
+      isForceOpen: true,
+      businessHoursText: '※テスト用に営業時間・定休日を解除しています',
+      currentDay: currentDayName,
+      currentTime: currentTimeStr
+    };
+  }
 
   // 日曜日は定休日
   if (day === 0) {
@@ -160,7 +173,7 @@ function getStoreStatus() {
 
   // 注文を受け付けられる条件:
   // 1. 臨時休業でない
-  // 2. 営業時間内である（日曜でなく、昼または夜の部）
+  // 2. 営業時間内である（日曜でなく、昼または夜の部、あるいはテスト強制営業中）
   // 3. 手動休止中でない
   // 4. 同時10件上限に達していない
   const canAccept = !storeConfig.isTemporaryClosed && bh.isOpen && storeConfig.isAcceptingOrders && !isLimitReached;
@@ -170,6 +183,7 @@ function getStoreStatus() {
     pauseReason: storeConfig.pauseReason,
     isTemporaryClosed: storeConfig.isTemporaryClosed,
     temporaryClosedReason: storeConfig.temporaryClosedReason,
+    forceOpenForTesting: Boolean(storeConfig.forceOpenForTesting),
     businessHours: bh,
     maxConcurrent: MAX_CONCURRENT_ORDERS,
     activeCount,
@@ -310,6 +324,19 @@ app.post('/api/store-status/toggle-temporary-closed', (req, res) => {
   }
   if (reason) {
     storeConfig.temporaryClosedReason = reason;
+  }
+  saveStoreConfig();
+  const currentStatus = getStoreStatus();
+  io.emit('store:status_changed', currentStatus);
+  res.json(currentStatus);
+});
+
+app.post('/api/store-status/toggle-force-open', (req, res) => {
+  const { forceOpen } = req.body;
+  if (typeof forceOpen === 'boolean') {
+    storeConfig.forceOpenForTesting = forceOpen;
+  } else {
+    storeConfig.forceOpenForTesting = !storeConfig.forceOpenForTesting;
   }
   saveStoreConfig();
   const currentStatus = getStoreStatus();

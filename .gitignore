@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env*
+deploy-package.zip
+upload-to-github/
+scripts/

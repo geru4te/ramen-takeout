@@ -2,5 +2,6 @@
   "isAcceptingOrders": true,
   "pauseReason": "店内混雑のため",
   "isTemporaryClosed": false,
-  "temporaryClosedReason": "本日臨時休業"
+  "temporaryClosedReason": "本日臨時休業",
+  "forceOpenForTesting": true
 }
