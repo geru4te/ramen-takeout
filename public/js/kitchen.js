@@ -26,13 +26,13 @@ const pinErrorMsg = document.getElementById('pin-error-msg');
 const pinCardBox = document.getElementById('pin-card-box');
 const chkRememberAuth = document.getElementById('chk-remember-auth');
 
-// 管理者PIN設定（初期PIN: 1234）
-const DEFAULT_ADMIN_PIN = '1234';
+// 管理者PIN設定
+const DEFAULT_ADMIN_PIN = '3646';
 function getAdminPin() {
-  return localStorage.getItem('ramen_admin_custom_pin') || DEFAULT_ADMIN_PIN;
+  return DEFAULT_ADMIN_PIN;
 }
 
-const AUTH_STORAGE_KEY = 'ramen_kitchen_authenticated';
+const AUTH_STORAGE_KEY = 'ramen_kitchen_authenticated_pin3646';
 let currentEnteredPin = '';
 
 // 認証チェック
