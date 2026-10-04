@@ -15,6 +15,8 @@ const badgeReady = document.getElementById('badge-ready');
 const soldoutChipsContainer = document.getElementById('soldout-chips-container');
 const soldoutStatusSummary = document.getElementById('soldout-status-summary');
 const btnSoundToggle = document.getElementById('btn-sound-toggle');
+const btnSoundTest = document.getElementById('btn-sound-test');
+const audioUnlockBanner = document.getElementById('audio-unlock-banner');
 const inputSearch = document.getElementById('input-search-order');
 const btnToggleAccepting = document.getElementById('btn-toggle-accepting');
 const btnToggleTempClosed = document.getElementById('btn-toggle-temp-closed');
@@ -30,52 +32,145 @@ let storeStatus = {
   isLimitReached: false
 };
 
-// Web Audio API での着信チャイム音
+// Web Audio API での着信チャイム音・操作音
 let audioCtx = null;
-function initAudio() {
+let soundEnabled = true;
+
+function getAudioContext() {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  return audioCtx;
+}
+
+// ブラウザの音声自動再生ブロックをアンロック
+async function unlockAudio() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') {
+    try {
+      await ctx.resume();
+    } catch (err) {
+      console.warn('Audio resume error:', err);
+    }
+  }
+  checkAudioStatus();
+}
+
+function checkAudioStatus() {
+  const ctx = getAudioContext();
+  if (!audioUnlockBanner) return;
+  if (!soundEnabled) {
+    audioUnlockBanner.style.display = 'none';
+  } else if (!ctx || ctx.state === 'suspended') {
+    audioUnlockBanner.style.display = 'block';
+  } else {
+    audioUnlockBanner.style.display = 'none';
   }
 }
 
+// 画面全体のタップ・キー操作でアンロック
+['click', 'touchstart', 'touchend', 'keydown'].forEach(evt => {
+  window.addEventListener(evt, () => {
+    unlockAudio();
+  }, { passive: true });
+});
+
+// バナー自体のクリックでアンロック＆確認音
+if (audioUnlockBanner) {
+  audioUnlockBanner.addEventListener('click', async () => {
+    await unlockAudio();
+    playNotificationSound();
+  });
+}
+
+// 新規注文受信チャイム（店舗向け2連ピンポーン音）
 function playNotificationSound() {
   if (!soundEnabled) return;
   try {
-    initAudio();
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
     }
 
-    const now = audioCtx.currentTime;
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(740, now);
-    gain1.gain.setValueAtTime(0.3, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-    osc1.connect(gain1);
-    gain1.connect(audioCtx.destination);
-    osc1.start(now);
-    osc1.stop(now + 0.6);
+    const playChimeNote = (freq, startOffset, dur = 0.5, vol = 0.45) => {
+      const startTime = ctx.currentTime + startOffset;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(vol, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + dur);
+    };
 
-    const osc2 = audioCtx.createOscillator();
-    const gain2 = audioCtx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(987.77, now + 0.2);
-    gain2.gain.setValueAtTime(0.3, now + 0.2);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
-    osc2.connect(gain2);
-    gain2.connect(audioCtx.destination);
-    osc2.start(now + 0.2);
-    osc2.stop(now + 1.0);
+    // 1回目 ピンポーン（ソ4: 784Hz → ミ4: 659Hz）
+    playChimeNote(783.99, 0.0, 0.45, 0.45);
+    playChimeNote(659.25, 0.22, 0.65, 0.45);
+    // 2回目 ピンポーン
+    playChimeNote(783.99, 0.85, 0.45, 0.45);
+    playChimeNote(659.25, 1.07, 0.85, 0.45);
   } catch (err) {
     console.error('Audio play error:', err);
   }
 }
 
-window.addEventListener('click', initAudio, { once: true });
+// 厨房「注文を受ける」受付操作音（ピピッ）
+function playAcceptBeep() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
 
-btnSoundToggle.addEventListener('click', () => {
+    const now = ctx.currentTime;
+    [0, 0.08].forEach((offset, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(idx === 0 ? 880 : 1320, now + offset);
+      gain.gain.setValueAtTime(0.35, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.12);
+    });
+  } catch (e) {}
+}
+
+// 「出来上がり（呼出）」操作音（ポーン）
+function playReadyBeep() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(987.77, now);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.5);
+  } catch (e) {}
+}
+
+// 音声トグルボタン
+btnSoundToggle.addEventListener('click', async () => {
+  await unlockAudio();
   soundEnabled = !soundEnabled;
   if (soundEnabled) {
     btnSoundToggle.textContent = '音声: ON';
@@ -85,7 +180,22 @@ btnSoundToggle.addEventListener('click', () => {
     btnSoundToggle.textContent = '音声: OFF';
     btnSoundToggle.style.color = '#94a3b8';
   }
+  checkAudioStatus();
 });
+
+// 音テストボタン
+if (btnSoundTest) {
+  btnSoundTest.addEventListener('click', async () => {
+    await unlockAudio();
+    if (!soundEnabled) {
+      soundEnabled = true;
+      btnSoundToggle.textContent = '音声: ON';
+      btnSoundToggle.style.color = '#38bdf8';
+    }
+    playNotificationSound();
+    checkAudioStatus();
+  });
+}
 
 btnToggleAccepting.addEventListener('click', async () => {
   const nextStatus = !isAcceptingOrders;
@@ -192,6 +302,7 @@ setInterval(() => {
 }, 10000);
 
 window.addEventListener('DOMContentLoaded', async () => {
+  checkAudioStatus();
   await fetchStoreStatus();
   await fetchOrders();
   await fetchMenu();
@@ -677,6 +788,7 @@ window.resetStagedMinutes = function(orderId) {
 };
 
 window.acceptOrder = async function(orderId, mins) {
+  playAcceptBeep();
   try {
     const res = await fetch(`/api/orders/${orderId}`, {
       method: 'PATCH',
@@ -729,6 +841,11 @@ window.resetEstimatedTime = async function(orderId) {
 };
 
 window.updateStatus = async function(orderId, status) {
+  if (status === 'READY') {
+    playReadyBeep();
+  } else if (status === 'COMPLETED') {
+    playAcceptBeep();
+  }
   try {
     const res = await fetch(`/api/orders/${orderId}`, {
       method: 'PATCH',

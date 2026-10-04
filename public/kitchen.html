@@ -9,6 +9,11 @@
 </head>
 <body class="kitchen-body">
 
+  <!-- 音声有効化案内バナー（ブラウザの自動再生ブロック解除用） -->
+  <div id="audio-unlock-banner" style="display: none; background: #ea580c; color: #ffffff; padding: 12px 16px; font-weight: 800; font-size: 1rem; text-align: center; cursor: pointer; border-bottom: 2px solid #c2410c; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);">
+    🔔 【重要】ブラウザの制限で音声が停止しています。ここをタップして注文受付音（チャイム）を有効化してください
+  </div>
+
   <!-- 厨房ヘッダー -->
   <header class="kitchen-header">
     <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
@@ -40,9 +45,12 @@
         <input type="text" id="input-search-order" placeholder="番号検索 (例: 7K2)" 
                style="background: #0f172a; border: 1px solid #475569; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; width: 140px; text-transform: uppercase;">
       </div>
-      <!-- 音声アラート切替 -->
+      <!-- 音声アラート切替 & 音テスト -->
       <button id="btn-sound-toggle" class="header-action-btn">
         音声: ON
+      </button>
+      <button id="btn-sound-test" class="header-action-btn" style="background: #0284c7; color: white;" title="タップして音が鳴るか確認">
+        🔊 音テスト
       </button>
       <a href="/test.html" target="_blank" class="header-link-btn" style="background: #334155;">
         テスト画面
@@ -86,6 +94,6 @@
     <!-- 動的生成される注文カード -->
   </main>
 
-  <script src="/js/kitchen.js?v=38"></script>
+  <script src="/js/kitchen.js?v=39"></script>
 </body>
 </html>
