@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧪 テスト＆デバッグ画面 - ラーメンエース テイクアウト</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      background: #0b1329;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    .test-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1e293b;
+      padding: 16px 24px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+    .test-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 12px;
+    }
+    .nav-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .nav-btn-customer {
+      background: #e11d48;
+      color: white;
+    }
+    .nav-btn-kitchen {
+      background: #2563eb;
+      color: white;
+    }
+    .nav-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .test-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: #1e293b;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      padding: 20px;
+    }
+    .panel-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: #f8fafc;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .test-action-btn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #f1f5f9;
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .test-action-btn:hover {
+      background: #334155;
+      border-color: #38bdf8;
+      transform: translateX(4px);
+    }
+    .test-action-btn .sub {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      font-weight: normal;
+    }
+    .test-action-btn .price {
+      background: #f59e0b;
+      color: #000;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+    .danger-zone {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed #475569;
+    }
+    .btn-reset {
+      width: 100%;
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .btn-reset:hover {
+      background: #b91c1c;
+    }
+    .order-list-box {
+      max-height: 520px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .order-card-mini {
+      background: #0f172a;
+      border-radius: 8px;
+      border-left: 5px solid #38bdf8;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .order-card-mini.status-RECEIVED { border-left-color: #ef4444; }
+    .order-card-mini.status-COOKING { border-left-color: #3b82f6; }
+    .order-card-mini.status-READY { border-left-color: #22c55e; }
+    .order-card-mini.status-COMPLETED { border-left-color: #64748b; opacity: 0.6; }
+    .status-pill {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+    .pill-RECEIVED { background: #ef4444; color: #fff; }
+    .pill-COOKING { background: #3b82f6; color: #fff; }
+    .pill-READY { background: #22c55e; color: #fff; }
+    .pill-COMPLETED { background: #64748b; color: #fff; }
+    .log-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #10b981;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      display: none;
+      animation: fadeIn 0.2s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <header class="test-header">
+    <div class="test-title">
+      <span>🧪 テスト＆デバッグ用コントロールパネル</span>
+    </div>
+    <div class="nav-links">
+      <a href="/" target="_blank" class="nav-btn nav-btn-customer">
+        📱 お客様画面を開く ↗
+      </a>
+      <a href="/kitchen.html" target="_blank" class="nav-btn nav-btn-kitchen">
+        📟 厨房KDS画面を開く ↗
+      </a>
+    </div>
+  </header>
+
+  <div class="test-grid">
+    <!-- 左パネル: ワンクリック・テスト注文投入 -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>🚀 ワンクリック注文テスト</span>
+        <span id="capacity-indicator" style="font-size: 0.85rem; color: #38bdf8;">受付中</span>
+      </div>
+
+      <div class="btn-group">
+        <button class="test-action-btn" onclick="sendTestOrder('single_normal')">
+          <div>
+            <div>🍜 ラーメン（ニンニク） 1杯</div>
+            <div class="sub">標準的な1杯注文（容器代+¥100含む）</div>
+          </div>
+          <span class="price">¥900</span>
+        </button>
+
+        <button class="test-action-btn" onclick="sendTestOrder('same_double')">
+          <div>
+            <div>🍜🍜 同一ラーメン 2杯【2×まとめ検証用】</div>
+            <div class="sub">ラーメン（ニンニク）× 2杯（厨房で「2× ラーメン」に集約）</div>
+          </div>
+          <span class="price">¥1,800</span>
+        </button>
+
+        <button class="test-action-btn" onclick="sendTestOrder('mixed_two')">
+          <div>
+            <div>🍜🍜 ラーメン1杯 ＋ トッピング付1杯【別行検証用】</div>
+            <div class="sub">ラーメン(コール無) + ラーメン(生たまご・ニンニク) 各1杯</div>
+          </div>
+          <span class="price">¥1,850</span>
+        </button>
+
+        <button class="test-action-btn" onclick="sendTestOrder('tsukemen_egg')">
+          <div>
+            <div>🥢 汁なしラーメン ＋ 生たまご 1杯</div>
+            <div class="sub">汁なしカテゴリ検証用（容器代+¥100 + 生たまご¥50）</div>
+          </div>
+          <span class="price">¥1,050</span>
+        </button>
+
+        <button class="test-action-btn" onclick="sendTestOrder('pork_ramen')">
+          <div>
+            <div>🐷 ブタラーメン 1杯</div>
+            <div class="sub">ブタ系メニュー検証用（ブタ終了トグルのテストに）</div>
+          </div>
+          <span class="price">¥1,050</span>
+        </button>
+
+        <button class="test-action-btn" onclick="sendBatchOrders(5)" style="border-color: #8b5cf6;">
+          <div>
+            <div>⚡ 5件一括注文テスト</div>
+            <div class="sub">5件の注文を連続投入して複数伝票の並びをテスト</div>
+          </div>
+          <span class="price" style="background: #8b5cf6; color: #fff;">5件投入</span>
+        </button>
+      </div>
+
+      <div class="danger-zone">
+        <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">テストデータのクリーンアップ:</div>
+        <button class="btn-reset" onclick="resetAllOrders()">
+          🗑️ 注文データをすべてクリア（リセット）
+        </button>
+      </div>
+    </div>
+
+    <!-- 右パネル: リアルタイム注文モニタ -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>📋 現在の注文リアルタイム一覧 (<span id="order-count">0</span>件)</span>
+        <button onclick="fetchOrders()" style="background: #334155; color: #fff; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">
+          ↻ 更新
+        </button>
+      </div>
+
+      <div class="order-list-box" id="test-order-list">
+        <!-- JSで動的生成 -->
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="log-toast"></div>
+
+  <script>
+    const socket = io();
+    let currentOrders = [];
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    async function fetchOrders() {
+      try {
+        const res = await fetch('/api/orders');
+        currentOrders = await res.json();
+        renderTestOrders();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderTestOrders() {
+      const list = document.getElementById('test-order-list');
+      const count = document.getElementById('order-count');
+      count.textContent = currentOrders.length;
+
+      if (currentOrders.length === 0) {
+        list.innerHTML = '<div style="color: #64748b; text-align: center; padding: 40px;">現在注文はありません。「ワンクリック注文テスト」からテスト注文を作成してください。</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      currentOrders.forEach(o => {
+        const div = document.createElement('div');
+        div.className = `order-card-mini status-${o.status}`;
+
+        const cleanNum = (o.orderNumber || '').replace(/^[#＃]/, '');
+        const itemsSummary = o.items.map(i => i.name).join(' / ');
+
+        div.innerHTML = `
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.2rem; font-weight: 900; color: #f8fafc;">${cleanNum}</span>
+              <span class="status-pill pill-${o.status}">${getStatusLabel(o.status)}</span>
+              <span style="font-size: 0.85rem; color: #f59e0b; font-weight: 700;">¥${o.totalAmount.toLocaleString()}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
+              ${itemsSummary} (計 ${o.items.length}杯)
+            </div>
+            ${(o.memo || o.note) ? `<div style="font-size: 0.8rem; color: #fbbf24; margin-top: 2px;">📝 メモ: ${(o.memo || o.note)}</div>` : ''}
+            ${o.status === 'COOKING' && o.targetTimestamp ? `<div style="font-size: 0.8rem; color: #38bdf8; margin-top: 2px;">⏱️ 残り 約${Math.max(0, Math.ceil((o.targetTimestamp - Date.now()) / 60000))}分</div>` : ''}
+          </div>
+          <div style="display: flex; gap: 6px;">
+            ${o.status === 'RECEIVED' ? `<button onclick="updateOrderStatus('${o.id}', 'COOKING')" style="background: #2563eb; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">受付</button>` : ''}
+            ${o.status === 'COOKING' ? `<button onclick="updateOrderStatus('${o.id}', 'READY')" style="background: #16a34a; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">出来上</button>` : ''}
+            ${o.status === 'READY' ? `<button onclick="updateOrderStatus('${o.id}', 'COMPLETED')" style="background: #64748b; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">完了</button>` : ''}
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function getStatusLabel(s) {
+      switch (s) {
+        case 'RECEIVED': return '⚠️ 受付待ち';
+        case 'COOKING': return '🍜 調理中';
+        case 'READY': return '🎉 受取待ち';
+        case 'COMPLETED': return '✨ お渡し済';
+        case 'CANCELLED': return 'キャンセル';
+        default: return s;
+      }
+    }
+
+    async function sendTestOrder(type) {
+      let items = [];
+      const CONTAINER_FEE = 100;
+
+      if (type === 'single_normal') {
+        items = [{
+          id: 'r3',
+          name: 'ラーメン',
+          category: 'ラーメン',
+          price: 800,
+          containerFee: CONTAINER_FEE,
+          freeToppings: ['ニンニク'],
+          paidToppings: [],
+          itemTotal: 900
+        }];
+      } else if (type === 'same_double') {
+        // まったく同じ注文 2杯
+        const item = {
+          id: 'r3',
+          name: 'ラーメン',
+          category: 'ラーメン',
+          price: 800,
+          containerFee: CONTAINER_FEE,
+          freeToppings: ['ニンニク'],
+          paidToppings: [],
+          itemTotal: 900
+        };
+        items = [item, { ...item, cartUid: 'dup_2' }];
+      } else if (type === 'mixed_two') {
+        // 異なる注文 2杯
+        items = [
+          {
+            id: 'r3',
+            name: 'ラーメン',
+            category: 'ラーメン',
+            price: 800,
+            containerFee: CONTAINER_FEE,
+            freeToppings: [],
+            paidToppings: [],
+            itemTotal: 900
+          },
+          {
+            id: 'r3',
+            name: 'ラーメン',
+            category: 'ラーメン',
+            price: 800,
+            containerFee: CONTAINER_FEE,
+            freeToppings: ['ニンニク'],
+            paidToppings: [{ id: 't1', name: '生たまご', price: 50 }],
+            itemTotal: 950
+          }
+        ];
+      } else if (type === 'tsukemen_egg') {
+        items = [{
+          id: 'j3',
+          name: '汁なしラーメン',
+          category: '汁なし',
+          price: 900,
+          containerFee: CONTAINER_FEE,
+          freeToppings: ['アブラ（背脂）'],
+          paidToppings: [{ id: 't1', name: '生たまご', price: 50 }],
+          itemTotal: 1050
+        }];
+      } else if (type === 'pork_ramen') {
+        items = [{
+          id: 'r6',
+          name: 'ブタラーメン',
+          category: 'ラーメン',
+          price: 950,
+          containerFee: CONTAINER_FEE,
+          freeToppings: ['ニンニク', 'アブラ（背脂）'],
+          paidToppings: [],
+          itemTotal: 1050
+        }];
+      }
+
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items })
+        });
+        if (res.ok) {
+          const created = await res.json();
+          showToast(`✅ テスト注文作成: ${created.orderNumber} (¥${created.totalAmount})`);
+          fetchOrders();
+        } else {
+          const err = await res.json();
+          alert(`エラー: ${err.message || err.error}`);
+        }
+      } catch (e) {
+        alert('注文作成エラー: ' + e.message);
+      }
+    }
+
+    async function sendBatchOrders(count) {
+      for (let i = 0; i < count; i++) {
+        await sendTestOrder('single_normal');
+        await new Promise(r => setTimeout(r, 200));
+      }
+      showToast(`⚡ ${count}件の注文を一括送信しました！`);
+    }
+
+    async function updateOrderStatus(id, status) {
+      try {
+        const res = await fetch(`/api/orders/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          showToast(`ステータス更新: ${updated.orderNumber} -> ${getStatusLabel(status)}`);
+          fetchOrders();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function resetAllOrders() {
+      if (!confirm('すべての注文データをクリア（削除）しますか？')) return;
+      try {
+        const res = await fetch('/api/orders/reset', { method: 'POST' });
+        if (res.ok) {
+          showToast('🗑️ すべての注文をクリアしました');
+          fetchOrders();
+        }
+      } catch (e) {
+        alert('リセットエラー: ' + e.message);
+      }
+    }
+
+    socket.on('order:created', () => fetchOrders());
+    socket.on('order:updated', () => fetchOrders());
+    socket.on('orders:reset', () => fetchOrders());
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchOrders();
+    });
+  </script>
+</body>
+</html>

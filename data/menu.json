@@ -1,0 +1,134 @@
+{
+  "mainMenu": [
+    {
+      "id": "r1",
+      "name": "ミニラーメン",
+      "category": "ラーメン",
+      "price": 750,
+      "description": "麺約150g。初めての方や少食の方向け。",
+      "requiredTickets": [{ "name": "ミニラーメン券", "price": 750 }]
+    },
+    {
+      "id": "r2",
+      "name": "ラーメン（少なめ）",
+      "category": "ラーメン",
+      "price": 800,
+      "description": "麺約200g。控えめのボリューム。",
+      "requiredTickets": [{ "name": "ラーメン（少なめ）券", "price": 800 }]
+    },
+    {
+      "id": "r3",
+      "name": "ラーメン",
+      "category": "ラーメン",
+      "price": 800,
+      "description": "標準サイズ（麺約300g・通常の約2倍）。",
+      "requiredTickets": [{ "name": "ラーメン券", "price": 800 }]
+    },
+    {
+      "id": "r4",
+      "name": "ブタミニラーメン",
+      "category": "ラーメン",
+      "price": 900,
+      "description": "ミニラーメンに極厚チャーシュー増量。",
+      "requiredTickets": [{ "name": "ブタミニラーメン券", "price": 900 }]
+    },
+    {
+      "id": "r5",
+      "name": "ブタラーメン（少なめ）",
+      "category": "ラーメン",
+      "price": 950,
+      "description": "少なめラーメンに極厚チャーシュー増量。",
+      "requiredTickets": [{ "name": "ブタラーメン（少なめ）券", "price": 950 }]
+    },
+    {
+      "id": "r6",
+      "name": "ブタラーメン",
+      "category": "ラーメン",
+      "price": 950,
+      "description": "麺も豚もボリューム満点。",
+      "requiredTickets": [{ "name": "ブタラーメン券", "price": 950 }]
+    },
+    {
+      "id": "j1",
+      "name": "汁なしミニラーメン",
+      "category": "汁なし",
+      "price": 850,
+      "description": "ミニラーメンの汁なしバージョン。",
+      "requiredTickets": [
+        { "name": "ミニラーメン券", "price": 750 },
+        { "name": "汁なし券", "price": 100 }
+      ]
+    },
+    {
+      "id": "j2",
+      "name": "汁なしラーメン（少なめ）",
+      "category": "汁なし",
+      "price": 900,
+      "description": "少なめラーメンの汁なしバージョン。",
+      "requiredTickets": [
+        { "name": "ラーメン（少なめ）券", "price": 800 },
+        { "name": "汁なし券", "price": 100 }
+      ]
+    },
+    {
+      "id": "j3",
+      "name": "汁なしラーメン",
+      "category": "汁なし",
+      "price": 900,
+      "description": "自家製極太麺と濃厚タレが絡む看板汁なし。",
+      "requiredTickets": [
+        { "name": "ラーメン券", "price": 800 },
+        { "name": "汁なし券", "price": 100 }
+      ]
+    },
+    {
+      "id": "j4",
+      "name": "汁なしブタミニラーメン",
+      "category": "汁なし",
+      "price": 1000,
+      "description": "汁なしミニに豚チャーシュー増量。",
+      "requiredTickets": [
+        { "name": "ブタミニラーメン券", "price": 900 },
+        { "name": "汁なし券", "price": 100 }
+      ]
+    },
+    {
+      "id": "j5",
+      "name": "汁なしブタラーメン（少なめ）",
+      "category": "汁なし",
+      "price": 1050,
+      "description": "汁なし少なめに豚チャーシュー増量。",
+      "requiredTickets": [
+        { "name": "ブタラーメン（少なめ）券", "price": 950 },
+        { "name": "汁なし券", "price": 100 }
+      ]
+    },
+    {
+      "id": "j6",
+      "name": "汁なしブタラーメン",
+      "category": "汁なし",
+      "price": 1050,
+      "description": "麺も豚も贅沢に味わえる汁なしの最高峰。",
+      "requiredTickets": [
+        { "name": "ブタラーメン券", "price": 950 },
+        { "name": "汁なし券", "price": 100 }
+      ]
+    }
+  ],
+  "toppings": {
+    "free": [
+      { "id": "f1", "name": "ニンニク", "price": 0 },
+      { "id": "f2", "name": "アブラ（背脂）", "price": 0 }
+    ],
+    "paid": [
+      { "id": "t1", "name": "生たまご", "price": 50, "requiredTickets": [{ "name": "生たまご券", "price": 50 }] },
+      { "id": "t2", "name": "ショウガ", "price": 50, "requiredTickets": [{ "name": "ショウガ券", "price": 50 }] },
+      { "id": "t3", "name": "魚粉", "price": 50, "requiredTickets": [{ "name": "魚粉券", "price": 50 }] },
+      { "id": "t4", "name": "生唐辛子", "price": 50, "requiredTickets": [{ "name": "生唐辛子券", "price": 50 }] },
+      { "id": "t5", "name": "玉ねぎ", "price": 50, "requiredTickets": [{ "name": "玉ねぎ券", "price": 50 }] },
+      { "id": "t6", "name": "粉チーズ", "price": 100, "requiredTickets": [{ "name": "粉チーズ券", "price": 100 }] },
+      { "id": "t7", "name": "うずら味たま（5個）", "price": 100, "requiredTickets": [{ "name": "うずら味たま券", "price": 100 }] },
+      { "id": "t8", "name": "のり（4枚）", "price": 100, "requiredTickets": [{ "name": "のり券", "price": 100 }] }
+    ]
+  }
+}

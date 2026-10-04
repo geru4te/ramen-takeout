@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ラーメンエース - テイクアウト予約注文</title>
+  <link rel="stylesheet" href="/css/style.css?v=4">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <header>
+    <div class="logo" onclick="resetToMenu()" style="cursor: pointer;" title="タップで注文トップに戻る">
+      <img src="/images/logo.png?v=2" alt="ラーメンエース" class="header-logo-img">
+      <span class="logo-sub">テイクアウト予約</span>
+    </div>
+    <div style="display: none; gap: 8px;">
+      <a href="/test.html" class="kitchen-link" target="_blank" style="background: #334155;">🧪 テスト画面 ↗</a>
+      <a href="/kitchen.html" class="kitchen-link" target="_blank">厨房画面へ ↗</a>
+    </div>
+  </header>
+
+  <!-- 混雑・満枠休止中バナー -->
+  <div id="store-paused-banner" class="store-paused-banner" style="display: none;">
+    <div class="paused-banner-title" id="paused-banner-title">⚠️ 只今、混雑のため予約受付を一時休止しております</div>
+    <div class="paused-banner-desc" id="paused-banner-desc">現在店内が混み合っているため、新規のテイクアウト注文を一時ストップしています。再開まで今しばらくお待ちください。</div>
+  </div>
+
+  <div class="container">
+
+    <!-- 注文中（進捗画面） -->
+    <section id="order-status-view" style="display: none;">
+      <div class="order-tracking-card">
+        <span style="font-size: 0.95rem; color: #64748b; font-weight: 700;">お受取・お呼出番号</span><br>
+        <div class="order-num-badge" id="disp-order-number">---</div>
+
+        <!-- ステータス表示 -->
+        <div class="status-indicator" id="disp-status-text">受付完了（厨房確認中）</div>
+        <p class="status-desc" id="disp-status-sub">厨房で注文を確認しています。完成時間が決まり次第表示されます。</p>
+
+        <!-- 完成予定時間 -->
+        <div class="time-box" id="disp-time-box" style="display: none;">
+          <div class="time-label">⏱️ 完成予定時刻</div>
+          <div class="time-val" id="disp-estimated-time">--:--</div>
+          <p style="font-size: 0.8rem; color: #15803d; margin-top: 4px;">出来立てをご用意してお待ちしております！</p>
+        </div>
+
+        <!-- ご注文内容確認カード -->
+        <div class="customer-order-detail-card">
+          <div class="detail-card-header">
+            <span>📋 ご注文内容</span>
+          </div>
+          <div id="disp-order-items-list" class="customer-order-items">
+            <!-- 動的生成 -->
+          </div>
+        </div>
+
+        <!-- お支払い案内カード -->
+        <div class="payment-guide-card">
+          <div class="payment-amount-row">
+            <span class="payment-amount-label">合計お支払い金額</span>
+            <span class="payment-amount-val" id="disp-total-amount">¥0</span>
+          </div>
+          <div class="payment-notice-text">
+            💡 お支払いは店頭で食券かPayPay等でお支払いください
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- メニュー注文画面 -->
+    <section id="menu-order-view">
+      <!-- 同時受付枠ステータスバー（非表示） -->
+      <div id="capacity-status-bar" class="capacity-status-bar" style="display: none;">
+        <div class="capacity-info">
+          <span class="capacity-dot open" id="capacity-dot"></span>
+          <span style="color: #475569; font-weight: 600;">注文受付枠:</span>
+          <strong id="capacity-count" style="font-size: 1rem; color: #0f172a;">0 / 10件</strong>
+          <span id="capacity-badge" class="capacity-badge open">残り 10件 注文可能</span>
+        </div>
+        <span style="font-size: 0.75rem; color: #64748b;">※同時に10件まで受付可能</span>
+      </div>
+
+      <div id="welcome-guide-box" style="background: #e0f2fe; border: 1px solid #7dd3fc; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem; color: #0369a1;">
+        💡 <strong>ご注文方法:</strong> ラーメンまたは汁なしをお選びいただくと、ニンニク・アブラやトッピングを1杯ごとにカスタマイズしてカートに追加できます！
+      </div>
+
+      <!-- カテゴリタブ -->
+      <div class="category-tabs" id="category-tabs">
+        <!-- 動的生成 -->
+      </div>
+
+      <!-- メニューリスト -->
+      <div class="menu-list" id="menu-list">
+        <!-- 動的生成 -->
+      </div>
+    </section>
+
+  </div>
+
+  <!-- トッピングカスタマイズモーダル（ラーメン選択時に開く） -->
+  <div class="modal-overlay" id="topping-modal">
+    <div class="modal-content">
+      <div class="modal-title">
+        <span id="topping-modal-title">トッピング選択</span>
+        <button class="close-btn" id="btn-close-topping-modal">&times;</button>
+      </div>
+
+      <p id="topping-modal-desc" style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px;"></p>
+
+      <!-- 無料トッピングエリア -->
+      <div class="topping-section">
+        <div class="topping-section-header">
+          <span class="badge-free">無料</span> <strong>ニンニク・アブラ（希望者のみ選択）</strong>
+        </div>
+        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px;">※標準では入りません。入れたいものにチェックを入れてください。</p>
+        <div class="topping-grid" id="free-toppings-container">
+          <!-- 動的生成 -->
+        </div>
+      </div>
+
+      <!-- 有料トッピングエリア -->
+      <div class="topping-section" style="margin-top: 16px;">
+        <div class="topping-section-header">
+          <span class="badge-paid">有料</span> <strong>トッピング（複数選択可）</strong>
+        </div>
+        <div class="topping-grid" id="paid-toppings-container">
+          <!-- 動的生成 -->
+        </div>
+      </div>
+
+      <!-- モーダル下部合計 ＆ 追加ボタン -->
+      <div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="font-size: 0.8rem; color: #64748b;">この1杯の小計</span><br>
+          <span id="topping-modal-subtotal" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">¥0</span>
+        </div>
+        <button class="order-btn" id="btn-add-customized-item" style="padding: 10px 24px;">
+          この内容で追加する
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 固定カートバー -->
+  <div class="cart-bar" id="cart-bar" style="display: none;">
+    <div class="cart-summary">
+      <span class="cart-count" id="cart-count">0点選択中</span>
+      <span class="cart-total" id="cart-total">¥0</span>
+    </div>
+    <button class="order-btn" id="btn-open-confirm">注文確認へ進む</button>
+  </div>
+
+  <!-- 注文確認モーダル（名前入力欄なし・ワンタップ注文） -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-content">
+      <div class="modal-title">
+        <span>ご注文内容の確認</span>
+        <button class="close-btn" id="btn-close-modal">&times;</button>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px;">
+          ご注文商品と各トッピング
+        </label>
+        <div id="modal-cart-items" style="border: 1px solid var(--border); border-radius: 8px; padding: 10px; max-height: 220px; overflow-y: auto;">
+          <!-- 動的生成 -->
+        </div>
+      </div>
+
+      <!-- 金額の上のメモ欄（1行） -->
+      <div style="margin-bottom: 12px;">
+        <label for="modal-order-memo" style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--text-main);">
+          📝 メモ・ご要望
+        </label>
+        <input type="text" id="modal-order-memo" placeholder="ご要望があればご記入ください" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; font-family: inherit; box-sizing: border-box; outline: none;">
+      </div>
+
+      <div class="payment-guide-card" style="margin: 12px 0;">
+        <div class="payment-amount-row">
+          <span class="payment-amount-label">合計お支払い金額</span>
+          <span class="payment-amount-val" id="modal-ticket-total">¥0</span>
+        </div>
+        <div class="payment-notice-text">
+          💡 お支払いは店頭で食券かPayPay等でお支払いください
+        </div>
+      </div>
+
+      <button class="order-btn" id="btn-submit-order" style="width: 100%; border-radius: 10px; padding: 14px;">
+        この内容で予約注文を確定する
+      </button>
+    </div>
+  </div>
+
+  <script src="/js/customer.js?v=16"></script>
+</body>
+</html>

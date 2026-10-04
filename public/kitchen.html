@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【厨房タブレット】テイクアウトオーダー管理 (KDS)</title>
+  <link rel="stylesheet" href="/css/style.css?v=4">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="kitchen-body">
+
+  <!-- 厨房ヘッダー -->
+  <header class="kitchen-header">
+    <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+      <h1 style="font-size: 1.3rem; font-weight: 800; color: #fff;">
+        厨房モニター (テイクアウト)
+      </h1>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <span id="badge-business-hours" class="summary-badge" style="background: #334155; color: #38bdf8; font-weight: 700;">営業判定中</span>
+        <span id="badge-capacity" class="summary-badge bg-capacity">進行中: 0/10件</span>
+        <span id="badge-received" class="summary-badge bg-red">未対応: 0件</span>
+        <span id="badge-cooking" class="summary-badge bg-blue">調理中: 0件</span>
+        <span id="badge-ready" class="summary-badge bg-green">受取待ち: 0件</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <!-- 臨時休業切替ボタン -->
+      <button id="btn-toggle-temp-closed" class="btn-store-status" style="background: #1e293b; color: #94a3b8; border: 1px solid #475569;">
+        臨時休業: OFF
+      </button>
+
+      <!-- 混雑時販売休止ボタン -->
+      <button id="btn-toggle-accepting" class="btn-store-status accepting">
+        注文受付中 (タップで休止)
+      </button>
+
+      <!-- 注文番号検索ボックス -->
+      <div style="position: relative;">
+        <input type="text" id="input-search-order" placeholder="番号検索 (例: 7K2)" 
+               style="background: #0f172a; border: 1px solid #475569; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; width: 140px; text-transform: uppercase;">
+      </div>
+      <!-- 音声アラート切替 -->
+      <button id="btn-sound-toggle" class="header-action-btn">
+        音声: ON
+      </button>
+      <a href="/test.html" target="_blank" class="header-link-btn" style="background: #334155;">
+        テスト画面
+      </a>
+      <a href="/" target="_blank" class="header-link-btn">
+        注文画面
+      </a>
+    </div>
+  </header>
+
+  <!-- メニュー売り切れ即時切替バー（全メニューを小さく一覧化・タップで即座に売り切れトグル） -->
+  <section class="soldout-manager-bar" id="soldout-manager-bar">
+    <div class="soldout-manager-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="soldout-header-title">品切れ・売り切れ管理</span>
+        <span style="font-size: 0.78rem; color: #94a3b8;">（タップすると即座にお客様画面に売り切れが反映されます）</span>
+      </div>
+      <div id="soldout-status-summary" style="font-size: 0.8rem; color: #cbd5e1;"></div>
+    </div>
+    <div class="soldout-chips-container" id="soldout-chips-container">
+      <!-- JSで全メニュー（ラーメン・汁なし・トッピング）をコンパクトに動的描画 -->
+    </div>
+  </section>
+
+  <!-- フィルタータブ -->
+  <div class="kitchen-filter-bar">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <button class="kds-tab-btn active" id="tab-all" onclick="setFilter('all')">全進行中オーダー</button>
+      <button class="kds-tab-btn" id="tab-received" onclick="setFilter('RECEIVED')">未対応</button>
+      <button class="kds-tab-btn" id="tab-cooking" onclick="setFilter('COOKING')">調理中</button>
+      <button class="kds-tab-btn" id="tab-ready" onclick="setFilter('READY')">受取待ち</button>
+      <button class="kds-tab-btn" id="tab-completed" onclick="setFilter('completed')">完了履歴</button>
+    </div>
+    <div style="color: #94a3b8; font-size: 0.85rem; align-self: center;">
+      ※古い注文から順に左上に並びます
+    </div>
+  </div>
+
+  <!-- 注文一覧グリッド -->
+  <main class="kitchen-grid" id="kitchen-orders-grid">
+    <!-- 動的生成される注文カード -->
+  </main>
+
+  <script src="/js/kitchen.js?v=36"></script>
+</body>
+</html>
