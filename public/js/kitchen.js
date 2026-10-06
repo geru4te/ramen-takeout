@@ -736,11 +736,26 @@ function renderOrders() {
       </div>
 
       <div class="kds-card-body">
-        <!-- お名前行を廃止し、合計金額と杯数をスマートに表示 -->
-        <div class="kds-customer-name">
+        <div class="kds-customer-name" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <span class="kds-total-badge">合計お会計: ¥${order.totalAmount.toLocaleString()}</span>
           <span style="font-size: 0.95rem; color: #94a3b8; font-weight: 700;">計 ${order.items.length}杯</span>
         </div>
+
+        ${order.lineUserName ? `
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #064e3b; border: 1px solid #059669; padding: 4px 8px; border-radius: 6px; margin-bottom: 8px; font-size: 0.85rem;">
+            <span style="color: #6ee7b7; font-weight: 800;">🟢 LINE: ${order.lineUserName} 様</span>
+            <button onclick="blockOrder('${order.id}', '${order.lineUserName}')" style="background: #991b1b; color: #fecaca; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">
+              🚫 いたずらブロック
+            </button>
+          </div>
+        ` : `
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #334155; padding: 4px 8px; border-radius: 6px; margin-bottom: 8px; font-size: 0.82rem; color: #94a3b8;">
+            <span>一般注文</span>
+            <button onclick="blockOrder('${order.id}', 'ゲスト')" style="background: #475569; color: #cbd5e1; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
+              注文破棄
+            </button>
+          </div>
+        `}
 
         ${(order.memo || order.note) ? `
           <div style="background: #fef3c7; border: 2px solid #f59e0b; border-left: 6px solid #d97706; color: #78350f; padding: 8px 12px; border-radius: 8px; margin: 10px 0; font-size: 0.95rem; font-weight: 800; word-break: break-all; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);">
@@ -837,6 +852,28 @@ function renderOrders() {
     ordersGrid.appendChild(card);
   });
 }
+
+window.blockOrder = async function(orderId, userName) {
+  const isBlock = userName && userName !== 'ゲスト';
+  const confirmMsg = isBlock
+    ? `【いたずら防止】\nこの注文を破棄し、お客様（${userName} 様）のLINEアカウントをブラックリスト（出禁）に登録しますか？\n※今後このアカウントからは一切注文できなくなります。`
+    : `この注文をキャンセル（破棄）しますか？`;
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const res = await fetch(`/api/orders/${orderId}/block`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      alert(isBlock ? `お客様（${userName} 様）をブロックし、注文を破棄しました。` : '注文をキャンセルしました。');
+    }
+  } catch (err) {
+    console.error('Block order error:', err);
+    alert('処理に失敗しました。');
+  }
+};
 
 window.stageEstimatedMinutes = function(orderId, delta) {
   const current = pendingMinutes[orderId] !== undefined ? pendingMinutes[orderId] : 10;

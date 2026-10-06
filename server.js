@@ -48,6 +48,49 @@ function isPorkSoldOut() {
   return porkIds.length > 0 && porkIds.every(id => soldOutIds.has(id));
 }
 
+// いたずら防止用ブラックリスト管理
+const BLACKLIST_FILE = path.join(__dirname, 'data', 'blacklist.json');
+let blacklist = [];
+
+function loadBlacklist() {
+  try {
+    if (fs.existsSync(BLACKLIST_FILE)) {
+      blacklist = JSON.parse(fs.readFileSync(BLACKLIST_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.error('Failed to load blacklist:', err);
+    blacklist = [];
+  }
+}
+loadBlacklist();
+
+function saveBlacklist() {
+  try {
+    const dir = path.dirname(BLACKLIST_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(BLACKLIST_FILE, JSON.stringify(blacklist, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed to save blacklist:', err);
+  }
+}
+
+function isBlacklisted(userId) {
+  if (!userId) return false;
+  return blacklist.some(b => b.userId === userId);
+}
+
+function addToBlacklist(userId, userName) {
+  if (!userId) return;
+  if (!isBlacklisted(userId)) {
+    blacklist.push({
+      userId,
+      userName: userName || '不明',
+      blockedAt: new Date().toISOString()
+    });
+    saveBlacklist();
+  }
+}
+
 function getMenuWithSoldOut() {
   const applySoldOut = (item) => ({
     ...item,
@@ -407,8 +450,16 @@ app.post('/api/orders', (req, res) => {
     });
   }
 
-  const { items, note, memo } = req.body;
+  const { items, note, memo, lineUserId, lineUserName } = req.body;
   const orderMemo = (memo || note || '').toString().slice(0, 300);
+
+  // いたずら防止ブラックリストチェック
+  if (lineUserId && isBlacklisted(lineUserId)) {
+    return res.status(403).json({
+      error: 'ACCOUNT_BLOCKED',
+      message: '申し訳ございません。このアカウントからのご注文は現在受け付けておりません。'
+    });
+  }
 
   if (!items || items.length === 0) {
     return res.status(400).json({ error: 'Cart is empty' });
@@ -444,6 +495,8 @@ app.post('/api/orders', (req, res) => {
     totalAmount,
     note: orderMemo,
     memo: orderMemo,
+    lineUserId: lineUserId || null,
+    lineUserName: lineUserName || null,
     status: 'RECEIVED',
     createdAt: now.toISOString(),
     targetTimestamp: null,
@@ -456,6 +509,51 @@ app.post('/api/orders', (req, res) => {
   io.emit('store:status_changed', getStoreStatus());
 
   res.status(201).json(newOrder);
+});
+
+// LIFF設定の取得
+app.get('/api/config/liff', (req, res) => {
+  res.json({
+    liffId: process.env.LINE_LIFF_ID || ''
+  });
+});
+
+// 厨房からいたずら注文者をブロック（出禁）＆注文キャンセル
+app.post('/api/orders/:id/block', (req, res) => {
+  const order = orders.find(o => o.id === req.params.id);
+  if (!order) {
+    return res.status(404).json({ error: 'Order not found' });
+  }
+
+  if (order.lineUserId) {
+    addToBlacklist(order.lineUserId, order.lineUserName);
+  }
+
+  order.status = 'CANCELLED';
+  order.cancelReason = 'いたずら注文としてブロック';
+
+  io.emit('order:updated', order);
+  io.emit('store:status_changed', getStoreStatus());
+
+  res.json({
+    success: true,
+    message: 'ユーザーをブラックリストに登録し、注文を破棄しました',
+    order
+  });
+});
+
+// 管理者用ブラックリスト一覧取得
+app.get('/api/admin/blacklist', (req, res) => {
+  res.json(blacklist);
+});
+
+// 管理者用ブラックリスト解除
+app.post('/api/admin/blacklist/unblock', (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId is required' });
+  blacklist = blacklist.filter(b => b.userId !== userId);
+  saveBlacklist();
+  res.json({ success: true, message: 'ブロックを解除しました' });
 });
 
 function formatTimeHHMM(ts) {
