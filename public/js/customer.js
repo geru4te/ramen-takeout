@@ -214,6 +214,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   await initLiff();
   await fetchStoreStatus();
   await fetchMenu();
+  loadCartFromStorage();
   if (currentOrderId) {
     await checkExistingOrder(currentOrderId);
   }
@@ -552,7 +553,27 @@ window.removeFromCart = function(cartUid) {
   renderModalCart();
 };
 
+function saveCartToStorage() {
+  try {
+    localStorage.setItem('ramen_temp_cart', JSON.stringify(cart));
+  } catch (e) {}
+}
+
+function loadCartFromStorage() {
+  try {
+    const saved = localStorage.getItem('ramen_temp_cart');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cart = parsed;
+        updateCartBar();
+      }
+    }
+  } catch (e) {}
+}
+
 function updateCartBar() {
+  saveCartToStorage();
   if (cart.length === 0 || !isAcceptingOrders) {
     cartBar.style.display = 'none';
     return;
@@ -730,6 +751,7 @@ btnSubmitOrder.addEventListener('click', async () => {
     localStorage.setItem('ramen_order_id', order.id);
 
     cart = [];
+    localStorage.removeItem('ramen_temp_cart');
     if (modalOrderMemo) modalOrderMemo.value = '';
     updateCartBar();
     confirmModal.style.display = 'none';

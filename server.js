@@ -514,7 +514,7 @@ app.post('/api/orders', (req, res) => {
 // LIFF設定の取得
 app.get('/api/config/liff', (req, res) => {
   res.json({
-    liffId: process.env.LINE_LIFF_ID || ''
+    liffId: process.env.LINE_LIFF_ID || '2011903918-yFtFeQMz'
   });
 });
 
