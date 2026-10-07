@@ -111,8 +111,74 @@ const lineAuthModal = document.getElementById('line-auth-modal');
 const btnPopupLineAuth = document.getElementById('btn-popup-line-auth');
 const btnCloseLineAuthModal = document.getElementById('btn-close-line-auth-modal');
 
+// リピーター特典関連UI要素
+const repeatRewardBanner = document.getElementById('repeat-reward-banner');
+const repeatRewardText = document.getElementById('repeat-reward-text');
+const modalRewardBanner = document.getElementById('modal-reward-banner');
+const modalRewardDiscountText = document.getElementById('modal-reward-discount-text');
+
 let liffProfile = null; // { userId, displayName }
 let liffConfigId = null;
+let currentUserStats = {
+  totalCount: 0,
+  monthlyCount: 0,
+  isContainerFree: false,
+  remainingForFree: 2
+};
+
+async function fetchUserOrderStats(userId) {
+  if (!userId) return;
+  try {
+    const res = await fetch(`/api/user/order-stats?lineUserId=${encodeURIComponent(userId)}`);
+    if (res.ok) {
+      currentUserStats = await res.json();
+      updateRepeatRewardUI();
+      recalculateCartPrices();
+    }
+  } catch (e) {
+    console.warn('Failed to fetch user stats:', e);
+  }
+}
+
+function updateRepeatRewardUI() {
+  if (!repeatRewardText) return;
+  if (!liffProfile) {
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！`;
+    return;
+  }
+
+  const monthly = currentUserStats.monthlyCount || 0;
+  if (currentUserStats.isContainerFree) {
+    repeatRewardText.innerHTML = `🎉 <strong>リピーター特典適用中:</strong> 今月${monthly}回ご利用中！今回の注文から容器代（1杯100円）が【無料】になります！`;
+  } else if (monthly === 1) {
+    repeatRewardText.innerHTML = `🌟 <strong>リピーター特典:</strong> 今月1回ご利用済み！あと1回のご注文で容器代（1杯100円）が無料になります！`;
+  } else {
+    repeatRewardText.innerHTML = `🌱 <strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！（今月あと2回）`;
+  }
+}
+
+function recalculateCartPrices() {
+  const isFree = Boolean(currentUserStats && currentUserStats.isContainerFree);
+  let changed = false;
+  cart.forEach(item => {
+    const fee = isFree ? 0 : CONTAINER_FEE_PER_BOWL;
+    if (item.containerFee !== fee) {
+      item.containerFee = fee;
+      item.requiredTickets = [
+        ...(item.requiredTickets || []).filter(t => t.name !== '容器代券'),
+        ...(fee > 0 ? [{ name: '容器代券', price: fee }] : [])
+      ];
+      let topsTotal = 0;
+      (item.paidToppings || []).forEach(p => { topsTotal += (p.price || 0); });
+      item.itemTotal = item.price + fee + topsTotal;
+      changed = true;
+    }
+  });
+  if (changed) {
+    updateCartBar();
+    saveCartToStorage();
+  }
+}
 
 async function initLiff() {
   try {
@@ -124,13 +190,19 @@ async function initLiff() {
       await liff.init({ liffId: liffConfigId });
       if (liff.isLoggedIn()) {
         liffProfile = await liff.getProfile();
+        await fetchUserOrderStats(liffProfile.userId);
       }
     } else {
       const savedMock = localStorage.getItem('ramen_demo_line_user');
       if (savedMock) {
-        try { liffProfile = JSON.parse(savedMock); } catch (e) {}
+        try { 
+          liffProfile = JSON.parse(savedMock); 
+          await fetchUserOrderStats(liffProfile.userId);
+        } catch (e) {}
       }
     }
+
+    updateRepeatRewardUI();
 
     // LINEログインリダイレクト復帰後の自動確定チェック（リセット防止）
     checkPendingOrderAutoSubmit();
@@ -174,6 +246,7 @@ if (btnPopupLineAuth) {
         liff.login();
       } else {
         liffProfile = await liff.getProfile();
+        await fetchUserOrderStats(liffProfile.userId);
         if (lineAuthModal) lineAuthModal.style.display = 'none';
         executeSubmitOrder(cart, memoVal, liffProfile);
       }
@@ -186,6 +259,7 @@ if (btnPopupLineAuth) {
           displayName: name.trim()
         };
         localStorage.setItem('ramen_demo_line_user', JSON.stringify(liffProfile));
+        await fetchUserOrderStats(liffProfile.userId);
         if (lineAuthModal) lineAuthModal.style.display = 'none';
         executeSubmitOrder(cart, memoVal, liffProfile);
       }
@@ -478,7 +552,9 @@ window.openToppingModal = function(itemId) {
 
 window.updateToppingSubtotal = function() {
   if (!selectedRamen) return;
-  let subtotal = selectedRamen.price + CONTAINER_FEE_PER_BOWL;
+  const isFree = Boolean(currentUserStats && currentUserStats.isContainerFree);
+  const containerFee = isFree ? 0 : CONTAINER_FEE_PER_BOWL;
+  let subtotal = selectedRamen.price + containerFee;
 
   const checkedPaid = document.querySelectorAll('input[name="paid-topping"]:checked');
   checkedPaid.forEach(input => {
@@ -498,7 +574,10 @@ window.updateToppingSubtotal = function() {
     }
   });
 
-  toppingModalSubtotal.textContent = `¥${subtotal.toLocaleString()} (容器代込)`;
+  const feeDesc = isFree 
+    ? '<span style="color: #16a34a; font-weight: 700; margin-left: 4px;">(月3回特典: 容器代無料)</span>' 
+    : '<span style="color: #64748b; font-size: 0.85rem; margin-left: 4px;">(容器代込)</span>';
+  toppingModalSubtotal.innerHTML = `¥${subtotal.toLocaleString()} ${feeDesc}`;
 };
 
 btnCloseToppingModal.addEventListener('click', () => {
@@ -524,20 +603,23 @@ btnAddCustomizedItem.addEventListener('click', () => {
     }
   });
 
+  const isFree = Boolean(currentUserStats && currentUserStats.isContainerFree);
+  const fee = isFree ? 0 : CONTAINER_FEE_PER_BOWL;
+
   const cartItem = {
     cartUid: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
     id: selectedRamen.id,
     name: selectedRamen.name,
     category: selectedRamen.category,
     price: selectedRamen.price,
-    containerFee: CONTAINER_FEE_PER_BOWL,
+    containerFee: fee,
     requiredTickets: [
       ...(selectedRamen.requiredTickets || []),
-      { name: '容器代券', price: CONTAINER_FEE_PER_BOWL }
+      ...(fee > 0 ? [{ name: '容器代券', price: fee }] : [])
     ],
     freeToppings: chosenFree,
     paidToppings: chosenPaid,
-    itemTotal: selectedRamen.price + CONTAINER_FEE_PER_BOWL + toppingsTotal
+    itemTotal: selectedRamen.price + fee + toppingsTotal
   };
 
   cart.push(cartItem);
@@ -634,7 +716,15 @@ function groupSameItems(items) {
 function renderModalCart() {
   modalCartItems.innerHTML = '';
   let total = 0;
-  cart.forEach(item => { total += item.itemTotal; });
+  let totalSavedContainerFee = 0;
+  const isFree = Boolean(currentUserStats && currentUserStats.isContainerFree);
+
+  cart.forEach(item => { 
+    total += item.itemTotal; 
+    if (isFree) {
+      totalSavedContainerFee += CONTAINER_FEE_PER_BOWL;
+    }
+  });
 
   const grouped = groupSameItems(cart);
 
@@ -662,9 +752,14 @@ function renderModalCart() {
 
     const headerPrefix = group.quantity >= 2 ? `${group.quantity}× ` : '';
     const groupRamenPrice = group.price * group.quantity;
-    const containerTotal = (group.containerFee || CONTAINER_FEE_PER_BOWL) * group.quantity;
+    const containerTotal = (group.containerFee !== undefined ? group.containerFee : (isFree ? 0 : CONTAINER_FEE_PER_BOWL)) * group.quantity;
 
-    const containerHtml = `
+    const containerHtml = isFree ? `
+      <div style="display: flex; justify-content: space-between; color: #16a34a; font-size: 0.85rem; font-weight: 700; margin-top: 2px;">
+        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">月3回特典無料</span></span>
+        <span>¥0</span>
+      </div>
+    ` : `
       <div style="display: flex; justify-content: space-between; color: #475569; font-size: 0.85rem; font-weight: 600; margin-top: 2px;">
         <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''}</span>
         <span>¥${containerTotal.toLocaleString()}</span>
@@ -695,6 +790,15 @@ function renderModalCart() {
     `;
     modalCartItems.appendChild(block);
   });
+
+  if (modalRewardBanner && modalRewardDiscountText) {
+    if (isFree && totalSavedContainerFee > 0) {
+      modalRewardBanner.style.display = 'flex';
+      modalRewardDiscountText.textContent = `-¥${totalSavedContainerFee.toLocaleString()}`;
+    } else {
+      modalRewardBanner.style.display = 'none';
+    }
+  }
 
   modalTicketTotal.textContent = `¥${total.toLocaleString()}`;
 }

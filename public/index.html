@@ -79,8 +79,16 @@
         <span style="font-size: 0.75rem; color: #64748b;">※同時に10件まで受付可能</span>
       </div>
 
-      <div id="welcome-guide-box" style="background: #e0f2fe; border: 1px solid #7dd3fc; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem; color: #0369a1;">
+      <div id="welcome-guide-box" style="background: #e0f2fe; border: 1px solid #7dd3fc; padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; color: #0369a1;">
         💡 <strong>ご注文方法:</strong> ラーメンまたは汁なしをお選びいただくと、ニンニク・アブラやトッピングを1杯ごとにカスタマイズしてカートに追加できます！
+      </div>
+
+      <!-- 月3回以上注文で容器代無料 特典案内バナー -->
+      <div id="repeat-reward-banner" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem; color: #166534; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.2rem;">🎁</span>
+          <span id="repeat-reward-text"><strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！</span>
+        </div>
       </div>
 
       <!-- カテゴリタブ -->
@@ -174,6 +182,12 @@
         <input type="text" id="modal-order-memo" placeholder="ご要望があればご記入ください" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; font-family: inherit; box-sizing: border-box; outline: none;">
       </div>
 
+      <!-- 容器代無料特典バッジ（注文確認モーダル内） -->
+      <div id="modal-reward-banner" style="display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.85rem; color: #166534; font-weight: 700; align-items: center; justify-content: space-between;">
+        <span>🎉 月3回以上ご利用特典: 容器代無料</span>
+        <span id="modal-reward-discount-text" style="color: #15803d; font-size: 0.95rem;">-¥0</span>
+      </div>
+
       <div class="payment-guide-card" style="margin: 12px 0;">
         <div class="payment-amount-row">
           <span class="payment-amount-label">合計お支払い金額</span>
@@ -212,6 +226,6 @@
     </div>
   </div>
 
-  <script src="/js/customer.js?v=24"></script>
+  <script src="/js/customer.js?v=25"></script>
 </body>
 </html>

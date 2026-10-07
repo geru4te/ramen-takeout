@@ -722,7 +722,31 @@ function renderOrders() {
     }
 
     const cleanOrderNum = (order.orderNumber || '').replace(/^[#＃]/, '');
-    card.innerHTML = `
+        const stats = order.userOrderStats;
+        let statsBadgeHtml = '';
+        if (stats) {
+          if (stats.totalCount === 1) {
+            statsBadgeHtml = `
+              <span style="background: #0284c7; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 0.78rem;">
+                🌱 初回注文 (通算1回目)
+              </span>
+            `;
+          } else if (stats.isContainerFree) {
+            statsBadgeHtml = `
+              <span style="background: #16a34a; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 900; font-size: 0.78rem; box-shadow: 0 1px 4px rgba(22,163,74,0.3);">
+                👑 通算${stats.totalCount}回目 (今月${stats.monthlyCount}回目) ★容器代無料
+              </span>
+            `;
+          } else {
+            statsBadgeHtml = `
+              <span style="background: #d97706; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 0.78rem;">
+                🌟 通算${stats.totalCount}回目 (今月${stats.monthlyCount}回目)
+              </span>
+            `;
+          }
+        }
+
+        card.innerHTML = `
       <div class="kds-card-head">
         <div>
           <span class="kds-order-num">${cleanOrderNum}</span>
@@ -742,18 +766,27 @@ function renderOrders() {
         </div>
 
         ${order.lineUserName ? `
-          <div style="display: flex; align-items: center; justify-content: space-between; background: #064e3b; border: 1px solid #059669; padding: 4px 8px; border-radius: 6px; margin-bottom: 8px; font-size: 0.85rem;">
-            <span style="color: #6ee7b7; font-weight: 800;">🟢 LINE: ${order.lineUserName} 様</span>
-            <button onclick="blockOrder('${order.id}', '${order.lineUserName}')" style="background: #991b1b; color: #fecaca; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">
-              🚫 いたずらブロック
-            </button>
+          <div style="background: #064e3b; border: 1px solid #059669; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
+              <span style="color: #6ee7b7; font-weight: 800;">🟢 LINE: ${order.lineUserName} 様</span>
+              <button onclick="blockOrder('${order.id}', '${order.lineUserName}')" style="background: #991b1b; color: #fecaca; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">
+                🚫 いたずらブロック
+              </button>
+            </div>
+            ${statsBadgeHtml ? `
+              <div style="margin-top: 5px; display: flex; align-items: center; gap: 6px;">
+                ${statsBadgeHtml}
+              </div>
+            ` : ''}
           </div>
         ` : `
-          <div style="display: flex; align-items: center; justify-content: space-between; background: #334155; padding: 4px 8px; border-radius: 6px; margin-bottom: 8px; font-size: 0.82rem; color: #94a3b8;">
-            <span>一般注文</span>
-            <button onclick="blockOrder('${order.id}', 'ゲスト')" style="background: #475569; color: #cbd5e1; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
-              注文破棄
-            </button>
+          <div style="background: #334155; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; color: #94a3b8;">
+              <span>一般注文</span>
+              <button onclick="blockOrder('${order.id}', 'ゲスト')" style="background: #475569; color: #cbd5e1; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
+                注文破棄
+              </button>
+            </div>
           </div>
         `}
 

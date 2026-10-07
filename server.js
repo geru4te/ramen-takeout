@@ -110,7 +110,69 @@ function getMenuWithSoldOut() {
 
 // 注文管理データ & 店舗受付ステータス永続化
 const MAX_CONCURRENT_ORDERS = 10; // 同時に受けられる最大注文数
+const ordersPath = path.join(__dirname, 'data', 'orders.json');
 let orders = [];
+
+function loadOrders() {
+  try {
+    if (fs.existsSync(ordersPath)) {
+      orders = JSON.parse(fs.readFileSync(ordersPath, 'utf-8'));
+    }
+  } catch (err) {
+    console.error('Failed to load orders.json:', err);
+    orders = [];
+  }
+}
+loadOrders();
+
+function saveOrders() {
+  try {
+    const dir = path.dirname(ordersPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    // 直近500件まで保持
+    const trimmed = orders.slice(0, 500);
+    fs.writeFileSync(ordersPath, JSON.stringify(trimmed, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed to save orders.json:', err);
+  }
+}
+
+// LINEユーザーの過去注文回数（キャンセルを除く有効な注文）を集計
+function getUserOrderHistory(userId) {
+  if (!userId) {
+    return {
+      totalCount: 0,
+      monthlyCount: 0,
+      isContainerFree: false,
+      remainingForFree: 2
+    };
+  }
+
+  const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000); // 直近30日間
+  const userValidOrders = orders.filter(o => 
+    o.lineUserId === userId && 
+    o.status !== 'CANCELLED'
+  );
+
+  const totalCount = userValidOrders.length;
+  const monthlyOrders = userValidOrders.filter(o => {
+    const t = new Date(o.createdAt).getTime();
+    return !isNaN(t) && t >= oneMonthAgo;
+  });
+  const monthlyCount = monthlyOrders.length;
+
+  // 「1か月に3回以上注文すると容器代を無料にする」
+  // 過去30日に2回以上注文があれば、今回の注文は3回目（またはそれ以上）になるので無料！
+  const isContainerFree = (monthlyCount >= 2);
+  const remainingForFree = Math.max(0, 2 - monthlyCount);
+
+  return {
+    totalCount,
+    monthlyCount,
+    isContainerFree,
+    remainingForFree
+  };
+}
 
 const storeStatusPath = path.join(__dirname, 'data', 'store_status.json');
 let storeConfig = {
@@ -234,15 +296,16 @@ function generateOrderNumber() {
 // ラーメン・汁なし 1杯につき容器代100円
 const CONTAINER_FEE_PER_BOWL = 100;
 
-// 券売機で購入すべき食券リストを算出（容器代 1杯100円を含む）
-function calculateTickets(items) {
+// 券売機で購入すべき食券リストを算出（容器代 1杯100円、特典適用時は無料）
+function calculateTickets(items, isContainerFree = false) {
   const ticketSummary = {};
   let totalAmount = 0;
 
   items.forEach(item => {
     const qty = item.quantity || 1;
-    // ラーメン・汁なし 1杯につき容器代100円を加算
-    const containerFee = (item.containerFee !== undefined) ? item.containerFee : CONTAINER_FEE_PER_BOWL;
+    // ラーメン・汁なし 1杯につき容器代100円（特典適用時は無料0円）
+    const standardFee = (item.containerFee !== undefined) ? item.containerFee : CONTAINER_FEE_PER_BOWL;
+    const containerFee = isContainerFree ? 0 : standardFee;
     let itemSubtotal = ((item.price || 0) + containerFee) * qty;
 
     if (item.requiredTickets && item.requiredTickets.length > 0) {
@@ -423,6 +486,13 @@ app.get('/api/orders/:id', (req, res) => {
   res.json(order);
 });
 
+// ユーザーの注文回数と特典ステータスを取得（注文画面用）
+app.get('/api/user/order-stats', (req, res) => {
+  const { lineUserId } = req.query;
+  const stats = getUserOrderHistory(lineUserId);
+  res.json(stats);
+});
+
 app.post('/api/orders', (req, res) => {
   const currentStatus = getStoreStatus();
   if (currentStatus.isTemporaryClosed) {
@@ -484,8 +554,18 @@ app.post('/api/orders', (req, res) => {
     }
   }
 
-  const { tickets, totalAmount } = calculateTickets(items);
+  // リピーター判定（直近30日で過去2回以上注文済み＝今回で3回目以上なら容器代無料）
+  const userHistory = getUserOrderHistory(lineUserId);
+  const isContainerFree = userHistory.isContainerFree;
+
+  const totalBowls = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const savedContainerFee = isContainerFree ? (totalBowls * CONTAINER_FEE_PER_BOWL) : 0;
+
+  const { tickets, totalAmount } = calculateTickets(items, isContainerFree);
   const now = new Date();
+
+  const currentTotalCount = userHistory.totalCount + 1;
+  const currentMonthlyCount = userHistory.monthlyCount + 1;
 
   const newOrder = {
     id: 'ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
@@ -501,10 +581,17 @@ app.post('/api/orders', (req, res) => {
     createdAt: now.toISOString(),
     targetTimestamp: null,
     estimatedMinutes: null,
-    readyAt: null
+    readyAt: null,
+    userOrderStats: {
+      totalCount: currentTotalCount,
+      monthlyCount: currentMonthlyCount,
+      isContainerFree: isContainerFree,
+      savedContainerFee: savedContainerFee
+    }
   };
 
   orders.unshift(newOrder);
+  saveOrders();
   io.emit('order:created', newOrder);
   io.emit('store:status_changed', getStoreStatus());
 
@@ -532,6 +619,7 @@ app.post('/api/orders/:id/block', (req, res) => {
   order.status = 'CANCELLED';
   order.cancelReason = 'いたずら注文としてブロック';
 
+  saveOrders();
   io.emit('order:updated', order);
   io.emit('store:status_changed', getStoreStatus());
 
@@ -609,6 +697,7 @@ app.patch('/api/orders/:id', (req, res) => {
     order.estimatedTime = formatTimeHHMM(order.targetTimestamp);
   }
 
+  saveOrders();
   io.emit('order:updated', order);
   io.emit('store:status_changed', getStoreStatus());
   res.json(order);
@@ -617,6 +706,7 @@ app.patch('/api/orders/:id', (req, res) => {
 // テスト用：全注文クリア
 app.post('/api/orders/reset', (req, res) => {
   orders = [];
+  saveOrders();
   io.emit('store:status_changed', getStoreStatus());
   io.emit('orders:reset');
   res.json({ success: true, message: 'All orders reset' });
