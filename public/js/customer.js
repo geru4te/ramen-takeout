@@ -106,13 +106,10 @@ const dispOrderNumber = document.getElementById('disp-order-number');
 const dispOrderItemsList = document.getElementById('disp-order-items-list');
 const dispTotalAmount = document.getElementById('disp-total-amount');
 
-// LINE認証関連
-const lineAuthSection = document.getElementById('line-auth-section');
-const lineAuthTitle = document.getElementById('line-auth-title');
-const lineAuthDesc = document.getElementById('line-auth-desc');
-const lineAuthStatusBadge = document.getElementById('line-auth-status-badge');
-const lineLoginBtnContainer = document.getElementById('line-login-btn-container');
-const btnLineLogin = document.getElementById('btn-line-login');
+// LINE認証関連（ポップアップモーダル）
+const lineAuthModal = document.getElementById('line-auth-modal');
+const btnPopupLineAuth = document.getElementById('btn-popup-line-auth');
+const btnCloseLineAuthModal = document.getElementById('btn-close-line-auth-modal');
 
 let liffProfile = null; // { userId, displayName }
 let liffConfigId = null;
@@ -134,69 +131,72 @@ async function initLiff() {
         try { liffProfile = JSON.parse(savedMock); } catch (e) {}
       }
     }
+
+    // LINEログインリダイレクト復帰後の自動確定チェック（リセット防止）
+    checkPendingOrderAutoSubmit();
   } catch (err) {
     console.warn('LIFF init warning:', err);
   }
-  updateLineAuthUI();
 }
 
-function updateLineAuthUI() {
-  if (!lineAuthSection) return;
-
-  if (liffProfile) {
-    if (lineAuthStatusBadge) {
-      lineAuthStatusBadge.textContent = '認証済み';
-      lineAuthStatusBadge.style.background = '#dcfce7';
-      lineAuthStatusBadge.style.color = '#15803d';
-      lineAuthStatusBadge.style.borderColor = '#86efac';
-    }
-    if (lineAuthTitle) {
-      lineAuthTitle.textContent = `🟢 LINE認証完了: ${liffProfile.displayName} 様`;
-    }
-    if (lineAuthDesc) {
-      lineAuthDesc.textContent = '実在アカウントの確認が完了しています。このままご注文いただけます。';
-    }
-    if (lineLoginBtnContainer) {
-      lineLoginBtnContainer.style.display = 'none';
-    }
-  } else {
-    if (lineAuthStatusBadge) {
-      lineAuthStatusBadge.textContent = '未確認';
-      lineAuthStatusBadge.style.background = '#fef08a';
-      lineAuthStatusBadge.style.color = '#854d0e';
-      lineAuthStatusBadge.style.borderColor = '#fde047';
-    }
-    if (lineAuthTitle) {
-      lineAuthTitle.textContent = 'いたずら防止のためのLINE認証';
-    }
-    if (lineAuthDesc) {
-      lineAuthDesc.textContent = '架空・いたずら注文防止のため、LINEで本人確認を行ってください';
-    }
-    if (lineLoginBtnContainer) {
-      lineLoginBtnContainer.style.display = 'block';
+// リダイレクト復帰時に保留中の注文を自動送信（注文リセットを完全に防止）
+function checkPendingOrderAutoSubmit() {
+  const pendingStr = localStorage.getItem('ramen_pending_order');
+  if (pendingStr && liffProfile) {
+    try {
+      const pending = JSON.parse(pendingStr);
+      if (pending && pending.cart && pending.cart.length > 0 && (Date.now() - (pending.timestamp || 0) < 10 * 60 * 1000)) {
+        localStorage.removeItem('ramen_pending_order');
+        cart = pending.cart;
+        executeSubmitOrder(pending.cart, pending.memo || '', liffProfile);
+      }
+    } catch (e) {
+      console.error('Pending order submit error:', e);
     }
   }
 }
 
-if (btnLineLogin) {
-  btnLineLogin.addEventListener('click', async () => {
+// ポップアップ「LINEで認証して注文を確定する」ボタン押下時
+if (btnPopupLineAuth) {
+  btnPopupLineAuth.addEventListener('click', async () => {
+    // 注文内容を一時保存（リダイレクトしても絶対にリセットされないようにする）
+    const memoVal = modalOrderMemo ? modalOrderMemo.value.trim() : '';
+    const pending = {
+      cart: cart,
+      memo: memoVal,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('ramen_pending_order', JSON.stringify(pending));
+    saveCartToStorage();
+
     if (liffConfigId && window.liff) {
       if (!liff.isLoggedIn()) {
         liff.login();
+      } else {
+        liffProfile = await liff.getProfile();
+        if (lineAuthModal) lineAuthModal.style.display = 'none';
+        executeSubmitOrder(cart, memoVal, liffProfile);
       }
     } else {
-      // LIFF IDが未設定の場合のデモ・テスト認証
-      const name = prompt('【いたずら防止LINE認証】LINEでの表示名（ニックネーム）を入力してください:', 'ラーメン好きのお客様');
+      // LIFF ID未設定時のテスト認証
+      const name = prompt('【LINE認証テスト】お名前（ニックネーム）を入力:', 'ラーメン好きのお客様');
       if (name && name.trim()) {
-        const dummyId = 'U_test_' + Math.random().toString(36).substring(2, 10);
         liffProfile = {
-          userId: dummyId,
+          userId: 'U_test_' + Math.random().toString(36).substring(2, 10),
           displayName: name.trim()
         };
         localStorage.setItem('ramen_demo_line_user', JSON.stringify(liffProfile));
-        updateLineAuthUI();
+        if (lineAuthModal) lineAuthModal.style.display = 'none';
+        executeSubmitOrder(cart, memoVal, liffProfile);
       }
     }
+  });
+}
+
+// ポップアップ閉じるボタン
+if (btnCloseLineAuthModal) {
+  btnCloseLineAuthModal.addEventListener('click', () => {
+    if (lineAuthModal) lineAuthModal.style.display = 'none';
   });
 }
 
@@ -589,7 +589,6 @@ btnOpenConfirm.addEventListener('click', () => {
     alert('只今、混雑のため一時的に予約受付を停止しております。');
     return;
   }
-  updateLineAuthUI();
   renderModalCart();
   confirmModal.style.display = 'flex';
 });
@@ -700,7 +699,7 @@ function renderModalCart() {
   modalTicketTotal.textContent = `¥${total.toLocaleString()}`;
 }
 
-// 注文送信（LINE認証確認済みで確定）
+// 注文送信ボタン（注文確認モーダル内）
 btnSubmitOrder.addEventListener('click', async () => {
   await unlockCustAudio();
   if (!isAcceptingOrders) {
@@ -714,30 +713,44 @@ btnSubmitOrder.addEventListener('click', async () => {
     return;
   }
 
-  // いたずら防止：LINE認証チェック
+  // いたずら防止：未認証の場合は認証ポップアップを表示
   if (!liffProfile) {
-    if (liffConfigId && window.liff) {
-      liff.login();
-      return;
-    } else {
-      alert('いたずら注文防止のため、先に「LINEでログイン（本人確認）」ボタンを押してください。');
-      return;
+    if (lineAuthModal) {
+      lineAuthModal.style.display = 'flex';
     }
+    return;
   }
 
-  btnSubmitOrder.disabled = true;
-  btnSubmitOrder.textContent = '注文を送信中...';
+  // 認証済みの場合はそのまま注文を送信
+  const memoVal = modalOrderMemo ? modalOrderMemo.value.trim() : '';
+  executeSubmitOrder(cart, memoVal, liffProfile);
+});
+
+// 注文送信処理共通関数（認証後やリダイレクト復帰後の自動確定からも呼び出し可能）
+async function executeSubmitOrder(orderCart, memoVal, profile) {
+  if (!orderCart || orderCart.length === 0) {
+    alert('カートが空です。');
+    return;
+  }
+
+  if (btnSubmitOrder) {
+    btnSubmitOrder.disabled = true;
+    btnSubmitOrder.textContent = '注文を送信中...';
+  }
+  if (btnPopupLineAuth) {
+    btnPopupLineAuth.disabled = true;
+    btnPopupLineAuth.textContent = '注文を確定中...';
+  }
 
   try {
-    const memoVal = modalOrderMemo ? modalOrderMemo.value.trim() : '';
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        items: cart,
-        memo: memoVal,
-        lineUserId: liffProfile ? liffProfile.userId : null,
-        lineUserName: liffProfile ? liffProfile.displayName : null
+        items: orderCart,
+        memo: memoVal || '',
+        lineUserId: profile ? profile.userId : null,
+        lineUserName: profile ? profile.displayName : null
       })
     });
 
@@ -750,22 +763,39 @@ btnSubmitOrder.addEventListener('click', async () => {
     currentOrderId = order.id;
     localStorage.setItem('ramen_order_id', order.id);
 
+    // 注文送信が成功したらカートと保留データをクリア
     cart = [];
     localStorage.removeItem('ramen_temp_cart');
+    localStorage.removeItem('ramen_pending_order');
     if (modalOrderMemo) modalOrderMemo.value = '';
     updateCartBar();
-    confirmModal.style.display = 'none';
-    btnSubmitOrder.disabled = false;
-    btnSubmitOrder.textContent = 'この内容で予約注文を確定する';
+
+    if (confirmModal) confirmModal.style.display = 'none';
+    if (lineAuthModal) lineAuthModal.style.display = 'none';
+
+    if (btnSubmitOrder) {
+      btnSubmitOrder.disabled = false;
+      btnSubmitOrder.textContent = 'この内容で予約注文を確定する';
+    }
+    if (btnPopupLineAuth) {
+      btnPopupLineAuth.disabled = false;
+      btnPopupLineAuth.textContent = 'LINEで認証して注文を確定する';
+    }
 
     showOrderStatus(order);
   } catch (err) {
     alert(err.message || '注文に失敗しました。もう一度お試しください。');
     console.error(err);
-    btnSubmitOrder.disabled = false;
-    btnSubmitOrder.textContent = 'この内容で予約注文を確定する';
+    if (btnSubmitOrder) {
+      btnSubmitOrder.disabled = false;
+      btnSubmitOrder.textContent = 'この内容で予約注文を確定する';
+    }
+    if (btnPopupLineAuth) {
+      btnPopupLineAuth.disabled = false;
+      btnPopupLineAuth.textContent = 'LINEで認証して注文を確定する';
+    }
   }
-});
+}
 
 async function checkExistingOrder(id) {
   try {
