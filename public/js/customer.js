@@ -1230,7 +1230,7 @@ function updateStatusDisplay(order) {
       statusText.style.color = '#64748b';
       statusSub.innerHTML = `
         ご利用ありがとうございました！またのお越しをお待ちしております。<br>
-        <button onclick="closeAppWindow()" style="margin-top: 14px; background: #475569; color: #fff; border: none; padding: 10px 32px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: background 0.2s;">
+        <button type="button" onclick="closeAppWindow()" style="margin-top: 14px; background: #0f172a; color: #fff; border: none; padding: 12px 36px; border-radius: 10px; font-weight: 800; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25); display: inline-block;">
           閉じる
         </button>
       `;
@@ -1292,42 +1292,45 @@ socket.on('menu:soldout_changed', (data) => {
 });
 
 window.resetToMenu = function() {
-  localStorage.removeItem('ramen_order_id');
+  try {
+    localStorage.removeItem('ramen_order_id');
+    sessionStorage.removeItem('ramen_order_id');
+    localStorage.removeItem('ramen_temp_cart');
+    localStorage.removeItem('ramen_pending_order');
+    sessionStorage.removeItem('ramen_pending_order');
+  } catch (e) {}
   currentOrder = null;
   currentOrderId = null;
   location.reload();
 };
 
 window.closeAppWindow = function() {
-  localStorage.removeItem('ramen_order_id');
+  try {
+    localStorage.removeItem('ramen_order_id');
+    sessionStorage.removeItem('ramen_order_id');
+    localStorage.removeItem('ramen_temp_cart');
+    localStorage.removeItem('ramen_pending_order');
+    sessionStorage.removeItem('ramen_pending_order');
+  } catch (e) {}
   currentOrder = null;
   currentOrderId = null;
 
-  // LINE/LIFF等のアプリ内ブラウザ対応
+  // 1. LINE/LIFFアプリ内ならウィンドウを閉じる試み
   if (window.liff && typeof window.liff.closeWindow === 'function') {
     try {
       window.liff.closeWindow();
-      return;
     } catch (e) {}
   }
 
-  // タブ・ウィンドウを閉じる試み
+  // 2. ブラウザウィンドウを閉じる試み
   try {
     window.close();
   } catch (e) {}
 
-  // ブラウザのセキュリティ制限で window.close() が動作しなかった場合の終了メッセージ
+  // 3. ブラウザが閉じない環境（通常ブラウザ等）では、即座にトップメニュー画面に戻す
   setTimeout(() => {
-    const statusSub = document.getElementById('disp-status-sub');
-    if (statusSub) {
-      statusSub.innerHTML = `
-        ご利用ありがとうございました！<br>
-        <span style="display: inline-block; margin-top: 8px; color: #475569; font-size: 0.9rem; font-weight: bold;">
-          ブラウザのタブまたはアプリを閉じて終了してください。
-        </span>
-      `;
-    }
-  }, 200);
+    location.reload();
+  }, 120);
 };
 
 // 調理中オーダーの残り時間を10秒ごとにリアルタイム再計算
