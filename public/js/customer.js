@@ -864,9 +864,11 @@ function renderModalCart() {
 
     const headerPrefix = group.quantity >= 2 ? `${group.quantity}× ` : '';
     const groupRamenPrice = group.price * group.quantity;
-    const containerTotal = (group.containerFee !== undefined ? group.containerFee : (isFree ? 0 : CONTAINER_FEE_PER_BOWL)) * group.quantity;
+    const isItemFree = isFree || group.containerFee === 0;
+    const unitContainerFee = isItemFree ? 0 : (group.containerFee !== undefined ? group.containerFee : CONTAINER_FEE_PER_BOWL);
+    const containerTotal = unitContainerFee * group.quantity;
 
-    const containerHtml = isFree ? `
+    const containerHtml = isItemFree ? `
       <div style="display: flex; justify-content: space-between; color: #16a34a; font-size: 0.85rem; font-weight: 700; margin-top: 2px;">
         <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">月3回特典無料</span></span>
         <span>¥0</span>
@@ -1120,9 +1122,22 @@ function showOrderStatus(order) {
 
     const titlePrefix = group.quantity >= 2 ? `${group.quantity}× ` : '';
     const groupRamenPrice = group.price * group.quantity;
-    const containerTotal = (group.containerFee || CONTAINER_FEE_PER_BOWL) * group.quantity;
 
-    const containerHtml = `
+    // 容器代無料判定（注文データの特典判定、アイテム自体の設定、ユーザー特典のいずれか）
+    const isItemContainerFree = Boolean(
+      (order.userOrderStats && order.userOrderStats.isContainerFree) ||
+      group.containerFee === 0 ||
+      (currentUserStats && currentUserStats.isContainerFree)
+    );
+    const unitContainerFee = isItemContainerFree ? 0 : (group.containerFee !== undefined ? group.containerFee : CONTAINER_FEE_PER_BOWL);
+    const containerTotal = unitContainerFee * group.quantity;
+
+    const containerHtml = isItemContainerFree ? `
+      <div style="display: flex; justify-content: space-between; color: #16a34a; font-size: 0.85rem; font-weight: 700; margin-top: 2px;">
+        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">無料（月3回特典）</span></span>
+        <span>¥0</span>
+      </div>
+    ` : `
       <div style="display: flex; justify-content: space-between; color: #475569; font-size: 0.85rem; font-weight: 600; margin-top: 2px;">
         <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''}</span>
         <span>¥${containerTotal.toLocaleString()}</span>
@@ -1153,6 +1168,21 @@ function showOrderStatus(order) {
     memoBox.style.cssText = 'background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 0.88rem; color: #334155;';
     memoBox.innerHTML = `<strong>ご要望・メモ:</strong> <span style="word-break: break-all;">${orderMemoText}</span>`;
     dispOrderItemsList.appendChild(memoBox);
+  }
+
+  const isFreeReward = Boolean(
+    (order.userOrderStats && order.userOrderStats.isContainerFree) ||
+    (order.userOrderStats && order.userOrderStats.savedContainerFee > 0)
+  );
+  if (isFreeReward) {
+    const rewardBox = document.createElement('div');
+    rewardBox.style.cssText = 'background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 0.88rem; color: #166534; font-weight: 700; display: flex; justify-content: space-between; align-items: center;';
+    const savedAmount = (order.userOrderStats && order.userOrderStats.savedContainerFee) || 0;
+    rewardBox.innerHTML = `
+      <span>月3回以上ご利用特典: 容器代無料</span>
+      <span style="color: #15803d; font-size: 0.95rem;">${savedAmount > 0 ? `-¥${savedAmount.toLocaleString()}` : '適用済み'}</span>
+    `;
+    dispOrderItemsList.appendChild(rewardBox);
   }
 
   dispTotalAmount.textContent = `¥${order.totalAmount.toLocaleString()}`;

@@ -558,10 +558,27 @@ app.post('/api/orders', (req, res) => {
   const userHistory = getUserOrderHistory(lineUserId);
   const isContainerFree = userHistory.isContainerFree;
 
-  const totalBowls = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  // 容器代無料特典の適用反映（アイテムデータ自体の容器代を0円に更新）
+  const sanitizedItems = items.map(item => {
+    const fee = isContainerFree ? 0 : ((item.containerFee !== undefined) ? item.containerFee : CONTAINER_FEE_PER_BOWL);
+    const paidTopsTotal = (item.paidToppings || item.toppings || []).reduce((sum, p) => sum + (p.price || 0), 0);
+    const ramenPrice = item.price || 0;
+    const filteredTickets = (item.requiredTickets || []).filter(t => t.name !== '容器代券');
+    if (fee > 0) {
+      filteredTickets.push({ name: '容器代券', price: fee });
+    }
+    return {
+      ...item,
+      containerFee: fee,
+      requiredTickets: filteredTickets,
+      itemTotal: (ramenPrice + fee + paidTopsTotal) * (item.quantity || 1)
+    };
+  });
+
+  const totalBowls = sanitizedItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const savedContainerFee = isContainerFree ? (totalBowls * CONTAINER_FEE_PER_BOWL) : 0;
 
-  const { tickets, totalAmount } = calculateTickets(items, isContainerFree);
+  const { tickets, totalAmount } = calculateTickets(sanitizedItems, isContainerFree);
   const now = new Date();
 
   const currentTotalCount = userHistory.totalCount + 1;
@@ -570,7 +587,7 @@ app.post('/api/orders', (req, res) => {
   const newOrder = {
     id: 'ord_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
     orderNumber: generateOrderNumber(), // 英数3桁（例: A01）
-    items,
+    items: sanitizedItems,
     tickets,
     totalAmount,
     note: orderMemo,
