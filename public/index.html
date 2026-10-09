@@ -38,7 +38,7 @@
 
         <!-- 完成予定時間 -->
         <div class="time-box" id="disp-time-box" style="display: none;">
-          <div class="time-label">⏱️ 完成予定時刻</div>
+          <div class="time-label">完成予定時刻</div>
           <div class="time-val" id="disp-estimated-time">--:--</div>
           <p style="font-size: 0.8rem; color: #15803d; margin-top: 4px;">出来立てをご用意してお待ちしております！</p>
         </div>
@@ -46,7 +46,7 @@
         <!-- ご注文内容確認カード -->
         <div class="customer-order-detail-card">
           <div class="detail-card-header">
-            <span>📋 ご注文内容</span>
+            <span>ご注文内容</span>
           </div>
           <div id="disp-order-items-list" class="customer-order-items">
             <!-- 動的生成 -->
@@ -60,7 +60,7 @@
             <span class="payment-amount-val" id="disp-total-amount">¥0</span>
           </div>
           <div class="payment-notice-text">
-            💡 お支払いは店頭で食券かPayPay等でお支払いください
+            お支払いは店頭で食券かPayPay等でお支払いください
           </div>
         </div>
       </div>
@@ -80,15 +80,12 @@
       </div>
 
       <div id="welcome-guide-box" style="background: #e0f2fe; border: 1px solid #7dd3fc; padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; color: #0369a1;">
-        💡 <strong>ご注文方法:</strong> ラーメンまたは汁なしをお選びいただくと、ニンニク・アブラやトッピングを1杯ごとにカスタマイズしてカートに追加できます！
+        <strong>ご注文方法:</strong> ラーメンまたは汁なしをお選びいただくと、ニンニク・アブラやトッピングを1杯ごとにカスタマイズしてカートに追加できます！
       </div>
 
       <!-- 月3回以上注文で容器代無料 特典案内バナー -->
       <div id="repeat-reward-banner" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem; color: #166534; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 1.2rem;">🎁</span>
-          <span id="repeat-reward-text"><strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！</span>
-        </div>
+        <span id="repeat-reward-text"><strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！</span>
       </div>
 
       <!-- カテゴリタブ -->
@@ -177,14 +174,14 @@
       <!-- 金額の上のメモ欄（1行） -->
       <div style="margin-bottom: 12px;">
         <label for="modal-order-memo" style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--text-main);">
-          📝 メモ・ご要望
+          メモ・ご要望
         </label>
         <input type="text" id="modal-order-memo" placeholder="ご要望があればご記入ください" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; font-family: inherit; box-sizing: border-box; outline: none;">
       </div>
 
       <!-- 容器代無料特典バッジ（注文確認モーダル内） -->
       <div id="modal-reward-banner" style="display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.85rem; color: #166534; font-weight: 700; align-items: center; justify-content: space-between;">
-        <span>🎉 月3回以上ご利用特典: 容器代無料</span>
+        <span>月3回以上ご利用特典: 容器代無料</span>
         <span id="modal-reward-discount-text" style="color: #15803d; font-size: 0.95rem;">-¥0</span>
       </div>
 
@@ -194,7 +191,7 @@
           <span class="payment-amount-val" id="modal-ticket-total">¥0</span>
         </div>
         <div class="payment-notice-text">
-          💡 お支払いは店頭で食券かPayPay等でお支払いください
+          お支払いは店頭で食券かPayPay等でお支払いください
         </div>
       </div>
 
@@ -207,16 +204,12 @@
   <!-- LINE本人確認ポップアップモーダル（未認証で注文ボタンを押した時のみ表示） -->
   <div id="line-auth-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 10000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);">
     <div style="background: #ffffff; border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); text-align: center;">
-      <div style="width: 60px; height: 60px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 2px solid #86efac;">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="#06c755"><path d="M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738 0 4.814 4.269 8.846 10.019 9.572.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.985 1.774-1.942 2.564-3.873 2.564-5.922z"/></svg>
-      </div>
-      <h3 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 10px;">LINE認証</h3>
+      <h3 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 12px;">LINE認証</h3>
       <p style="font-size: 0.95rem; color: #475569; line-height: 1.5; margin-bottom: 24px;">
         初回のみLINEで認証を行っております。
       </p>
 
-      <button type="button" id="btn-popup-line-auth" style="width: 100%; background: #06c755; color: #fff; border: none; padding: 13px; border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(6, 199, 85, 0.4);">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738 0 4.814 4.269 8.846 10.019 9.572.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.985 1.774-1.942 2.564-3.873 2.564-5.922z"/></svg>
+      <button type="button" id="btn-popup-line-auth" style="width: 100%; background: #06c755; color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(6, 199, 85, 0.4);">
         LINEで認証して注文を確定する
       </button>
 
@@ -226,6 +219,6 @@
     </div>
   </div>
 
-  <script src="/js/customer.js?v=26"></script>
+  <script src="/js/customer.js?v=27"></script>
 </body>
 </html>

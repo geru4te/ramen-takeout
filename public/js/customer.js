@@ -169,11 +169,11 @@ function updateRepeatRewardUI() {
 
   const monthly = currentUserStats.monthlyCount || 0;
   if (currentUserStats.isContainerFree) {
-    repeatRewardText.innerHTML = `🎉 <strong>リピーター特典適用中:</strong> 今月${monthly}回ご利用中！今回の注文から容器代（1杯100円）が【無料】になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典適用中:</strong> 今月${monthly}回ご利用中！今回の注文から容器代（1杯100円）が【無料】になります！`;
   } else if (monthly === 1) {
-    repeatRewardText.innerHTML = `🌟 <strong>リピーター特典:</strong> 今月1回ご利用済み！あと1回のご注文で容器代（1杯100円）が無料になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 今月1回ご利用済み！あと1回のご注文で容器代（1杯100円）が無料になります！`;
   } else {
-    repeatRewardText.innerHTML = `🌱 <strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！（今月あと2回）`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！（今月あと2回）`;
   }
 }
 
@@ -845,7 +845,7 @@ function renderModalCart() {
     block.className = 'cart-item-block';
 
     const freeHtml = group.freeToppings && group.freeToppings.length > 0 
-      ? `<div class="cart-toppings-free">🟢 無料コール: ${group.freeToppings.join('、 ')}</div>` 
+      ? `<div class="cart-toppings-free">無料コール: ${group.freeToppings.join('、 ')}</div>` 
       : '';
 
     let paidRowsHtml = '';
@@ -1100,7 +1100,7 @@ function showOrderStatus(order) {
     itemBox.className = 'cust-item-box';
 
     const freeHtml = group.freeToppings && Array.isArray(group.freeToppings) && group.freeToppings.length > 0
-      ? `<div class="cust-free-text">🟢 無料コール: ${group.freeToppings.join('、 ')}</div>`
+      ? `<div class="cust-free-text">無料コール: ${group.freeToppings.join('、 ')}</div>`
       : '';
 
     let paidListHtml = '';
@@ -1139,7 +1139,7 @@ function showOrderStatus(order) {
 
     itemBox.innerHTML = `
       <div class="cust-item-title">
-        <span>🍜 ${idx + 1}. <strong>${titlePrefix}${group.name}</strong></span>
+        <span>${idx + 1}. <strong>${titlePrefix}${group.name}</strong></span>
         <span>¥${groupRamenPrice.toLocaleString()}</span>
       </div>
       ${toppingsDescHtml}
@@ -1151,7 +1151,7 @@ function showOrderStatus(order) {
   if (orderMemoText) {
     const memoBox = document.createElement('div');
     memoBox.style.cssText = 'background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 0.88rem; color: #334155;';
-    memoBox.innerHTML = `📝 <strong>ご要望・メモ:</strong> <span style="word-break: break-all;">${orderMemoText}</span>`;
+    memoBox.innerHTML = `<strong>ご要望・メモ:</strong> <span style="word-break: break-all;">${orderMemoText}</span>`;
     dispOrderItemsList.appendChild(memoBox);
   }
 
@@ -1214,19 +1214,19 @@ function updateStatusDisplay(order) {
       statusSub.textContent = '厨房で注文を確認中です。スタッフが受付・調理を開始するまで少々お待ちください。';
       break;
     case 'COOKING':
-      statusText.textContent = '🍜 注文受付・調理中';
+      statusText.textContent = '注文受付・調理中';
       statusText.style.color = '#2563eb';
       statusSub.textContent = formattedTime 
         ? `厨房で注文が受け付けられ、調理中です！完成予定時刻（${formattedTime}頃）を目安にご来店ください。`
         : '厨房で注文が受け付けられました！現在スタッフが調理しております。';
       break;
     case 'READY':
-      statusText.textContent = '🎉 出来上がりました！';
+      statusText.textContent = '出来上がりました！';
       statusText.style.color = '#16a34a';
       statusSub.textContent = '店頭にお越しいただき、スタッフにお声がけください！';
       break;
     case 'COMPLETED':
-      statusText.textContent = '✨ お渡し完了';
+      statusText.textContent = 'お渡し完了';
       statusText.style.color = '#64748b';
       statusSub.innerHTML = `
         ご利用ありがとうございました！またのお越しをお待ちしております。<br>
