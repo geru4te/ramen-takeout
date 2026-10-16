@@ -144,7 +144,7 @@ function getUserOrderHistory(userId) {
       totalCount: 0,
       monthlyCount: 0,
       isContainerFree: false,
-      remainingForFree: 2
+      remainingForFree: 3
     };
   }
 
@@ -161,10 +161,10 @@ function getUserOrderHistory(userId) {
   });
   const monthlyCount = monthlyOrders.length;
 
-  // 「1か月に3回以上注文すると容器代を無料にする」
-  // 過去30日に2回以上注文があれば、今回の注文は3回目（またはそれ以上）になるので無料！
-  const isContainerFree = (monthlyCount >= 2);
-  const remainingForFree = Math.max(0, 2 - monthlyCount);
+  // 「30日以内に4回以上注文すると容器代を無料にする」
+  // 過去30日に3回以上注文があれば、今回の注文は4回目（またはそれ以上）になるので無料！
+  const isContainerFree = (monthlyCount >= 3);
+  const remainingForFree = Math.max(0, 3 - monthlyCount);
 
   return {
     totalCount,
@@ -554,7 +554,7 @@ app.post('/api/orders', (req, res) => {
     }
   }
 
-  // リピーター判定（直近30日で過去2回以上注文済み＝今回で3回目以上なら容器代無料）
+  // リピーター判定（直近30日で過去3回以上注文済み＝今回で4回目以上なら容器代無料）
   const userHistory = getUserOrderHistory(lineUserId);
   const isContainerFree = userHistory.isContainerFree;
 

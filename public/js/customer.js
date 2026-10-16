@@ -163,17 +163,19 @@ async function fetchUserOrderStats(userId) {
 function updateRepeatRewardUI() {
   if (!repeatRewardText) return;
   if (!liffProfile) {
-    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 30日以内に4回以上のご利用で容器代（1杯100円）が無料になります！`;
     return;
   }
 
   const monthly = currentUserStats.monthlyCount || 0;
   if (currentUserStats.isContainerFree) {
-    repeatRewardText.innerHTML = `<strong>リピーター特典適用中:</strong> 今月${monthly}回ご利用中！今回の注文から容器代（1杯100円）が【無料】になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典適用中:</strong> 直近30日間に${monthly}回ご利用中！今回の注文から容器代（1杯100円）が【無料】になります！`;
+  } else if (monthly === 2) {
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 直近30日間に2回ご利用済み！あと1回のご注文で次回から容器代（1杯100円）が無料になります！`;
   } else if (monthly === 1) {
-    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 今月1回ご利用済み！あと1回のご注文で容器代（1杯100円）が無料になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 直近30日間に1回ご利用済み！あと2回のご注文で容器代（1杯100円）が無料になります！`;
   } else {
-    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 1か月に3回以上のご利用で容器代（1杯100円）が無料になります！（今月あと2回）`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 30日以内に4回以上のご利用で容器代（1杯100円）が無料になります！（あと3回）`;
   }
 }
 
@@ -870,7 +872,7 @@ function renderModalCart() {
 
     const containerHtml = isItemFree ? `
       <div style="display: flex; justify-content: space-between; color: #16a34a; font-size: 0.85rem; font-weight: 700; margin-top: 2px;">
-        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">月3回特典無料</span></span>
+        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">30日以内4回特典無料</span></span>
         <span>¥0</span>
       </div>
     ` : `
@@ -1134,7 +1136,7 @@ function showOrderStatus(order) {
 
     const containerHtml = isItemContainerFree ? `
       <div style="display: flex; justify-content: space-between; color: #16a34a; font-size: 0.85rem; font-weight: 700; margin-top: 2px;">
-        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">無料（月3回特典）</span></span>
+        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">無料（30日以内4回特典）</span></span>
         <span>¥0</span>
       </div>
     ` : `
@@ -1179,7 +1181,7 @@ function showOrderStatus(order) {
     rewardBox.style.cssText = 'background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 0.88rem; color: #166534; font-weight: 700; display: flex; justify-content: space-between; align-items: center;';
     const savedAmount = (order.userOrderStats && order.userOrderStats.savedContainerFee) || 0;
     rewardBox.innerHTML = `
-      <span>月3回以上ご利用特典: 容器代無料</span>
+      <span>30日以内4回以上ご利用特典: 容器代無料</span>
       <span style="color: #15803d; font-size: 0.95rem;">${savedAmount > 0 ? `-¥${savedAmount.toLocaleString()}` : '適用済み'}</span>
     `;
     dispOrderItemsList.appendChild(rewardBox);
