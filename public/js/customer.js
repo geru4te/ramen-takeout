@@ -114,6 +114,7 @@ const btnCloseLineAuthModal = document.getElementById('btn-close-line-auth-modal
 // リピーター特典関連UI要素
 const repeatRewardBanner = document.getElementById('repeat-reward-banner');
 const repeatRewardText = document.getElementById('repeat-reward-text');
+const btnBannerLineLogin = document.getElementById('btn-banner-line-login');
 const modalRewardBanner = document.getElementById('modal-reward-banner');
 const modalRewardDiscountText = document.getElementById('modal-reward-discount-text');
 
@@ -164,7 +165,17 @@ function updateRepeatRewardUI() {
   if (!repeatRewardText) return;
   if (!liffProfile) {
     repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 30日以内に4回以上のご利用で容器代（1杯100円）が無料になります！`;
+    if (btnBannerLineLogin) {
+      btnBannerLineLogin.style.display = 'inline-block';
+      btnBannerLineLogin.disabled = false;
+      btnBannerLineLogin.textContent = 'LINEログイン';
+    }
     return;
+  }
+
+  // ログイン済みの場合はバナー内ログインボタンを非表示
+  if (btnBannerLineLogin) {
+    btnBannerLineLogin.style.display = 'none';
   }
 
   const monthly = currentUserStats.monthlyCount || 0;
@@ -379,6 +390,53 @@ if (btnPopupLineAuth) {
 if (btnCloseLineAuthModal) {
   btnCloseLineAuthModal.addEventListener('click', () => {
     if (lineAuthModal) lineAuthModal.style.display = 'none';
+  });
+}
+
+// リピーター特典バナーの「LINEログイン」ボタン押下時（注文前でも特典を即時適用）
+if (btnBannerLineLogin) {
+  btnBannerLineLogin.addEventListener('click', async () => {
+    btnBannerLineLogin.disabled = true;
+    btnBannerLineLogin.textContent = '確認中...';
+    saveCartToStorage();
+
+    if (liffConfigId && window.liff) {
+      try {
+        if (liff.isLoggedIn()) {
+          try {
+            liffProfile = await liff.getProfile();
+            saveLineProfileCache(liffProfile);
+            await fetchUserOrderStats(liffProfile.userId);
+            updateRepeatRewardUI();
+            return;
+          } catch (pe) {
+            console.warn('Profile fetch warning:', pe);
+          }
+        }
+        // 未ログイン時はログイン画面へ（戻り先は現在のURL）
+        liff.login({ redirectUri: window.location.href });
+      } catch (err) {
+        console.error('LIFF auth error on banner button:', err);
+        btnBannerLineLogin.disabled = false;
+        btnBannerLineLogin.textContent = 'LINEログイン';
+      }
+    } else {
+      // LIFF未設定時のテスト認証
+      const name = prompt('【LINE認証テスト】お名前（ニックネーム）を入力:', 'リピーター様');
+      if (name && name.trim()) {
+        liffProfile = {
+          userId: 'U_test_' + Math.random().toString(36).substring(2, 10),
+          displayName: name.trim()
+        };
+        localStorage.setItem('ramen_demo_line_user', JSON.stringify(liffProfile));
+        saveLineProfileCache(liffProfile);
+        await fetchUserOrderStats(liffProfile.userId);
+        updateRepeatRewardUI();
+      } else {
+        btnBannerLineLogin.disabled = false;
+        btnBannerLineLogin.textContent = 'LINEログイン';
+      }
+    }
   });
 }
 
