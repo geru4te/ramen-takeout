@@ -172,10 +172,10 @@ function getUserOrderHistory(userId) {
   const monthlyCount = monthlyOrders.length;
   const monthlyBowlCount = monthlyOrders.reduce((sum, o) => sum + countBowlsInOrder(o), 0);
 
-  // 「30日以内に4杯ご利用で、5杯目から容器代を無料にする」
-  // 過去30日に4杯以上注文済みなら、今回の注文は5杯目（またはそれ以上）になるので無料！
-  const isContainerFree = (monthlyBowlCount >= 4);
-  const remainingForFree = Math.max(0, 4 - monthlyBowlCount);
+  // 「直近30日以内に3回ご利用で、4回目から容器代無料」
+  // 過去30日に3回以上注文済みなら、今回の注文は4回目（またはそれ以上）になるので無料！
+  const isContainerFree = (monthlyCount >= 3);
+  const remainingForFree = Math.max(0, 3 - monthlyCount);
 
   return {
     totalCount,

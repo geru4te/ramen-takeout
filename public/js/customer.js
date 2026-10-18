@@ -164,7 +164,7 @@ async function fetchUserOrderStats(userId) {
 function updateRepeatRewardUI() {
   if (!repeatRewardText) return;
   if (!liffProfile) {
-    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 30日以内に4杯ご利用で、5杯目から容器代（1杯100円）が無料になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 30日以内に3回ご利用で、4回目から容器代（1杯100円）が無料になります！`;
     if (btnBannerLineLogin) {
       btnBannerLineLogin.style.display = 'inline-block';
       btnBannerLineLogin.disabled = false;
@@ -178,19 +178,19 @@ function updateRepeatRewardUI() {
     btnBannerLineLogin.style.display = 'none';
   }
 
-  const monthlyBowls = currentUserStats.monthlyBowlCount !== undefined 
-    ? currentUserStats.monthlyBowlCount 
-    : (currentUserStats.monthlyCount || 0);
+  const monthly = currentUserStats.monthlyCount || 0;
   const remaining = currentUserStats.remainingForFree !== undefined 
     ? currentUserStats.remainingForFree 
-    : Math.max(0, 4 - monthlyBowls);
+    : Math.max(0, 3 - monthly);
 
   if (currentUserStats.isContainerFree) {
-    repeatRewardText.innerHTML = `<strong>リピーター特典適用中:</strong> 直近30日間に${monthlyBowls}杯ご利用中！今回の注文から容器代（1杯100円）が【無料】になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典適用中:</strong> 直近30日間に${monthly}回ご利用中！今回の注文（4回目以降）は容器代（1杯100円）が【無料】になります！`;
+  } else if (remaining === 1) {
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 直近30日間に${monthly}回ご利用済み！あと1回のご注文で次回（4回目）から容器代が無料になります！`;
   } else if (remaining > 0) {
-    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 直近30日間に${monthlyBowls}杯ご利用中！あと${remaining}杯で5杯目から容器代（1杯100円）が無料になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 直近30日間に${monthly}回ご利用済み！あと${remaining}回のご注文で4回目から容器代が無料になります！`;
   } else {
-    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 30日以内に4杯ご利用で、5杯目から容器代（1杯100円）が無料になります！`;
+    repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 30日以内に3回ご利用で、4回目から容器代（1杯100円）が無料になります！`;
   }
 }
 
@@ -934,7 +934,7 @@ function renderModalCart() {
 
     const containerHtml = isItemFree ? `
       <div style="display: flex; justify-content: space-between; color: #16a34a; font-size: 0.85rem; font-weight: 700; margin-top: 2px;">
-        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">30日以内5杯目〜無料</span></span>
+        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">30日以内4回目〜無料</span></span>
         <span>¥0</span>
       </div>
     ` : `
@@ -1198,7 +1198,7 @@ function showOrderStatus(order) {
 
     const containerHtml = isItemContainerFree ? `
       <div style="display: flex; justify-content: space-between; color: #16a34a; font-size: 0.85rem; font-weight: 700; margin-top: 2px;">
-        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">無料（30日以内5杯目〜特典）</span></span>
+        <span>・容器代${group.quantity >= 2 ? ` (${group.quantity}個)` : ''} <span style="background: #dcfce7; color: #15803d; padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;">無料（30日以内4回目〜特典）</span></span>
         <span>¥0</span>
       </div>
     ` : `
@@ -1243,7 +1243,7 @@ function showOrderStatus(order) {
     rewardBox.style.cssText = 'background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 0.88rem; color: #166534; font-weight: 700; display: flex; justify-content: space-between; align-items: center;';
     const savedAmount = (order.userOrderStats && order.userOrderStats.savedContainerFee) || 0;
     rewardBox.innerHTML = `
-      <span>30日以内5杯目以降ご利用特典: 容器代無料</span>
+      <span>30日以内4回目以降ご利用特典: 容器代無料</span>
       <span style="color: #15803d; font-size: 0.95rem;">${savedAmount > 0 ? `-¥${savedAmount.toLocaleString()}` : '適用済み'}</span>
     `;
     dispOrderItemsList.appendChild(rewardBox);
