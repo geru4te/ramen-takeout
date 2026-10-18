@@ -21,10 +21,28 @@ const btnToggleAccepting = document.getElementById('btn-toggle-accepting');
 const btnToggleTempClosed = document.getElementById('btn-toggle-temp-closed');
 const badgeBusinessHours = document.getElementById('badge-business-hours');
 const btnLockKitchen = document.getElementById('btn-lock-kitchen');
+const btnToggleSoldoutBar = document.getElementById('btn-toggle-soldout-bar');
+const soldoutManagerBar = document.getElementById('soldout-manager-bar');
+const soldoutArrowIcon = document.getElementById('soldout-arrow-icon');
+const headerSoldoutPill = document.getElementById('header-soldout-pill');
 const authOverlay = document.getElementById('kitchen-auth-overlay');
 const pinErrorMsg = document.getElementById('pin-error-msg');
 const pinCardBox = document.getElementById('pin-card-box');
 const chkRememberAuth = document.getElementById('chk-remember-auth');
+
+// 売り切れ設定バーの開閉トグル
+if (btnToggleSoldoutBar && soldoutManagerBar) {
+  btnToggleSoldoutBar.addEventListener('click', () => {
+    const isClosed = soldoutManagerBar.style.display === 'none' || !soldoutManagerBar.style.display;
+    if (isClosed) {
+      soldoutManagerBar.style.display = 'block';
+      if (soldoutArrowIcon) soldoutArrowIcon.textContent = '▲';
+    } else {
+      soldoutManagerBar.style.display = 'none';
+      if (soldoutArrowIcon) soldoutArrowIcon.textContent = '▼';
+    }
+  });
+}
 
 // 管理者PIN設定
 const DEFAULT_ADMIN_PIN = '3646';
@@ -304,17 +322,13 @@ function updateAcceptingButton(statusData) {
   // 1. 臨時休業ボタンの表示
   if (btnToggleTempClosed) {
     if (storeStatus.isTemporaryClosed) {
-      btnToggleTempClosed.style.background = '#dc2626';
-      btnToggleTempClosed.style.color = '#ffffff';
-      btnToggleTempClosed.style.borderColor = '#ef4444';
-      btnToggleTempClosed.style.fontWeight = '900';
-      btnToggleTempClosed.textContent = '臨時休業: ON (タップで解除)';
+      btnToggleTempClosed.className = 'btn-store-status-mini temp-closed-on';
+      btnToggleTempClosed.textContent = '臨時休業: ON';
+      btnToggleTempClosed.title = 'タップで臨時休業を解除';
     } else {
-      btnToggleTempClosed.style.background = '#1e293b';
-      btnToggleTempClosed.style.color = '#94a3b8';
-      btnToggleTempClosed.style.borderColor = '#475569';
-      btnToggleTempClosed.style.fontWeight = 'normal';
-      btnToggleTempClosed.textContent = '臨時休業: OFF (タップで休業)';
+      btnToggleTempClosed.className = 'btn-store-status-mini temp-closed-off';
+      btnToggleTempClosed.textContent = '臨時休業: OFF';
+      btnToggleTempClosed.title = 'タップで臨時休業に切替';
     }
   }
 
@@ -328,7 +342,7 @@ function updateAcceptingButton(statusData) {
     } else if (bh && bh.isOpen) {
       badgeBusinessHours.style.background = '#166534';
       badgeBusinessHours.style.color = '#bbf7d0';
-      badgeBusinessHours.textContent = '営業中 (受付可能)';
+      badgeBusinessHours.textContent = '営業中';
     } else {
       badgeBusinessHours.style.background = '#334155';
       badgeBusinessHours.style.color = '#94a3b8';
@@ -337,18 +351,20 @@ function updateAcceptingButton(statusData) {
   }
 
   // 3. 受付中 / 混雑休止ボタンの更新
-  if (storeStatus.isTemporaryClosed) {
-    btnToggleAccepting.className = 'btn-store-status paused';
-    btnToggleAccepting.textContent = '臨時休業中 (受付停止)';
-  } else if (!storeStatus.isAcceptingOrders) {
-    btnToggleAccepting.className = 'btn-store-status paused';
-    btnToggleAccepting.textContent = '手動休止中 (タップで受付再開)';
-  } else if (storeStatus.isLimitReached) {
-    btnToggleAccepting.className = 'btn-store-status paused';
-    btnToggleAccepting.textContent = `同時上限(${storeStatus.maxConcurrent || 10}件)到達 (停止中)`;
-  } else {
-    btnToggleAccepting.className = 'btn-store-status accepting';
-    btnToggleAccepting.textContent = '注文受付中 (タップで休止)';
+  if (btnToggleAccepting) {
+    if (storeStatus.isTemporaryClosed) {
+      btnToggleAccepting.className = 'btn-store-status-mini paused';
+      btnToggleAccepting.textContent = '休業中 (受付停止)';
+    } else if (!storeStatus.isAcceptingOrders) {
+      btnToggleAccepting.className = 'btn-store-status-mini paused';
+      btnToggleAccepting.textContent = '休止中 (再開)';
+    } else if (storeStatus.isLimitReached) {
+      btnToggleAccepting.className = 'btn-store-status-mini paused';
+      btnToggleAccepting.textContent = `満枠(${storeStatus.maxConcurrent || 10}件)`;
+    } else {
+      btnToggleAccepting.className = 'btn-store-status-mini accepting';
+      btnToggleAccepting.textContent = '注文受付中';
+    }
   }
 }
 
@@ -475,6 +491,20 @@ function renderSoldOutChips() {
       soldoutStatusSummary.innerHTML = `<span style="color: #4ade80; font-weight: 700;">全品 通常販売中</span>`;
     }
   }
+
+  // ヘッダー内トグルボタンのミニピル表示更新
+  if (headerSoldoutPill) {
+    if (isPorkOut) {
+      headerSoldoutPill.className = 'soldout-mini-pill alert';
+      headerSoldoutPill.textContent = '⚠️ ブタ終了';
+    } else if (totalSoldOutCount > 0) {
+      headerSoldoutPill.className = 'soldout-mini-pill alert';
+      headerSoldoutPill.textContent = `⚠️ 売切 ${totalSoldOutCount}品`;
+    } else {
+      headerSoldoutPill.className = 'soldout-mini-pill ok';
+      headerSoldoutPill.textContent = '全品販売中';
+    }
+  }
 }
 
 window.togglePorkSoldOut = async function() {
@@ -580,18 +610,30 @@ function renderOrders() {
   const cookingCount = orders.filter(o => o.status === 'COOKING').length;
   const readyCount = orders.filter(o => o.status === 'READY').length;
 
-  badgeReceived.textContent = `未対応: ${receivedCount}件`;
-  badgeCooking.textContent = `調理中: ${cookingCount}件`;
-  badgeReady.textContent = `受取待ち: ${readyCount}件`;
-
   const activeOrders = orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED');
   const activeCount = activeOrders.length;
+
+  // タブ内の件数バッジ更新
+  const tabCountAll = document.getElementById('tab-count-all');
+  const tabCountReceived = document.getElementById('tab-count-received');
+  const tabCountCooking = document.getElementById('tab-count-cooking');
+  const tabCountReady = document.getElementById('tab-count-ready');
+
+  if (tabCountAll) tabCountAll.textContent = activeCount;
+  if (tabCountReceived) tabCountReceived.textContent = receivedCount;
+  if (tabCountCooking) tabCountCooking.textContent = cookingCount;
+  if (tabCountReady) tabCountReady.textContent = readyCount;
+
+  if (badgeReceived) badgeReceived.textContent = `未対応: ${receivedCount}件`;
+  if (badgeCooking) badgeCooking.textContent = `調理中: ${cookingCount}件`;
+  if (badgeReady) badgeReady.textContent = `受取待ち: ${readyCount}件`;
+
   if (badgeCapacity) {
-    badgeCapacity.textContent = `進行中: ${activeCount} / 10件`;
+    badgeCapacity.textContent = `進行枠: ${activeCount} / 10件`;
     if (activeCount >= 10) {
-      badgeCapacity.classList.add('full');
+      badgeCapacity.className = 'capacity-mini-badge full';
     } else {
-      badgeCapacity.classList.remove('full');
+      badgeCapacity.className = 'capacity-mini-badge';
     }
   }
 
