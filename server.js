@@ -137,14 +137,22 @@ function saveOrders() {
   }
 }
 
-// LINEユーザーの過去注文回数（キャンセルを除く有効な注文）を集計
+// 注文データ内の麺類杯数を集計するヘルパー
+function countBowlsInOrder(order) {
+  if (!order || !order.items || !Array.isArray(order.items)) return 0;
+  return order.items.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
+}
+
+// LINEユーザーの過去注文回数・杯数（キャンセルを除く有効な注文）を集計
 function getUserOrderHistory(userId) {
   if (!userId) {
     return {
       totalCount: 0,
       monthlyCount: 0,
+      totalBowlCount: 0,
+      monthlyBowlCount: 0,
       isContainerFree: false,
-      remainingForFree: 3
+      remainingForFree: 4
     };
   }
 
@@ -155,20 +163,25 @@ function getUserOrderHistory(userId) {
   );
 
   const totalCount = userValidOrders.length;
+  const totalBowlCount = userValidOrders.reduce((sum, o) => sum + countBowlsInOrder(o), 0);
+
   const monthlyOrders = userValidOrders.filter(o => {
     const t = new Date(o.createdAt).getTime();
     return !isNaN(t) && t >= oneMonthAgo;
   });
   const monthlyCount = monthlyOrders.length;
+  const monthlyBowlCount = monthlyOrders.reduce((sum, o) => sum + countBowlsInOrder(o), 0);
 
-  // 「30日以内に4回以上注文すると容器代を無料にする」
-  // 過去30日に3回以上注文があれば、今回の注文は4回目（またはそれ以上）になるので無料！
-  const isContainerFree = (monthlyCount >= 3);
-  const remainingForFree = Math.max(0, 3 - monthlyCount);
+  // 「30日以内に4杯ご利用で、5杯目から容器代を無料にする」
+  // 過去30日に4杯以上注文済みなら、今回の注文は5杯目（またはそれ以上）になるので無料！
+  const isContainerFree = (monthlyBowlCount >= 4);
+  const remainingForFree = Math.max(0, 4 - monthlyBowlCount);
 
   return {
     totalCount,
     monthlyCount,
+    totalBowlCount,
+    monthlyBowlCount,
     isContainerFree,
     remainingForFree
   };
@@ -554,7 +567,7 @@ app.post('/api/orders', (req, res) => {
     }
   }
 
-  // リピーター判定（直近30日で過去3回以上注文済み＝今回で4回目以上なら容器代無料）
+  // リピーター判定（直近30日で過去4杯以上注文済み＝今回で5杯目以上なら容器代無料）
   const userHistory = getUserOrderHistory(lineUserId);
   const isContainerFree = userHistory.isContainerFree;
 
@@ -602,6 +615,8 @@ app.post('/api/orders', (req, res) => {
     userOrderStats: {
       totalCount: currentTotalCount,
       monthlyCount: currentMonthlyCount,
+      totalBowlCount: userHistory.totalBowlCount + totalBowls,
+      monthlyBowlCount: userHistory.monthlyBowlCount + totalBowls,
       isContainerFree: isContainerFree,
       savedContainerFee: savedContainerFee
     }

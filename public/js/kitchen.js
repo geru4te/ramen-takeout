@@ -767,22 +767,25 @@ function renderOrders() {
         const stats = order.userOrderStats;
         let statsBadgeHtml = '';
         if (stats) {
+          const totalBowls = stats.totalBowlCount !== undefined ? stats.totalBowlCount : stats.totalCount;
+          const monthlyBowls = stats.monthlyBowlCount !== undefined ? stats.monthlyBowlCount : stats.monthlyCount;
+
           if (stats.totalCount === 1) {
             statsBadgeHtml = `
               <span style="background: #0284c7; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 0.78rem;">
-                🌱 初回注文 (通算1回目)
+                🌱 初回注文 (通算${totalBowls}杯目)
               </span>
             `;
           } else if (stats.isContainerFree) {
             statsBadgeHtml = `
               <span style="background: #16a34a; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 900; font-size: 0.78rem; box-shadow: 0 1px 4px rgba(22,163,74,0.3);">
-                👑 通算${stats.totalCount}回目 (直近30日${stats.monthlyCount}回目) ★容器代無料
+                👑 通算${totalBowls}杯目 (直近30日${monthlyBowls}杯目) ★容器代無料(5杯目〜)
               </span>
             `;
           } else {
             statsBadgeHtml = `
               <span style="background: #d97706; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 0.78rem;">
-                🌟 通算${stats.totalCount}回目 (直近30日${stats.monthlyCount}回目)
+                🌟 通算${totalBowls}杯目 (直近30日${monthlyBowls}杯目)
               </span>
             `;
           }
