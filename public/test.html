@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🧪 テスト＆デバッグ画面 - ラーメンエース テイクアウト</title>
+  <title>テスト＆デバッグ画面 - ラーメンエース モバイルオーダー</title>
   <link rel="stylesheet" href="/css/style.css">
   <script src="/socket.io/socket.io.js"></script>
   <style>
@@ -195,14 +195,14 @@
   <!-- ヘッダー -->
   <header class="test-header">
     <div class="test-title">
-      <span>🧪 テスト＆デバッグ用コントロールパネル</span>
+      <span>テスト＆デバッグ用コントロールパネル</span>
     </div>
     <div class="nav-links">
       <a href="/" target="_blank" class="nav-btn nav-btn-customer">
-        📱 お客様画面を開く ↗
+        お客様画面を開く ↗
       </a>
       <a href="/kitchen.html" target="_blank" class="nav-btn nav-btn-kitchen">
-        📟 厨房KDS画面を開く ↗
+        厨房KDS画面を開く ↗
       </a>
     </div>
   </header>
@@ -211,14 +211,14 @@
     <!-- 左パネル: ワンクリック・テスト注文投入 -->
     <div class="panel">
       <div class="panel-title">
-        <span>🚀 ワンクリック注文テスト</span>
+        <span>ワンクリック注文テスト</span>
         <span id="capacity-indicator" style="font-size: 0.85rem; color: #38bdf8;">受付中</span>
       </div>
 
       <div class="btn-group">
         <button class="test-action-btn" onclick="sendTestOrder('single_normal')">
           <div>
-            <div>🍜 ラーメン（ニンニク） 1杯</div>
+            <div>ラーメン（ニンニク） 1杯</div>
             <div class="sub">標準的な1杯注文（容器代+¥100含む）</div>
           </div>
           <span class="price">¥900</span>
@@ -226,7 +226,7 @@
 
         <button class="test-action-btn" onclick="sendTestOrder('same_double')">
           <div>
-            <div>🍜🍜 同一ラーメン 2杯【2×まとめ検証用】</div>
+            <div>同一ラーメン 2杯【2×まとめ検証用】</div>
             <div class="sub">ラーメン（ニンニク）× 2杯（厨房で「2× ラーメン」に集約）</div>
           </div>
           <span class="price">¥1,800</span>
@@ -234,7 +234,7 @@
 
         <button class="test-action-btn" onclick="sendTestOrder('mixed_two')">
           <div>
-            <div>🍜🍜 ラーメン1杯 ＋ トッピング付1杯【別行検証用】</div>
+            <div>ラーメン1杯 ＋ トッピング付1杯【別行検証用】</div>
             <div class="sub">ラーメン(コール無) + ラーメン(生たまご・ニンニク) 各1杯</div>
           </div>
           <span class="price">¥1,850</span>
@@ -242,7 +242,7 @@
 
         <button class="test-action-btn" onclick="sendTestOrder('tsukemen_egg')">
           <div>
-            <div>🥢 汁なしラーメン ＋ 生たまご 1杯</div>
+            <div>汁なしラーメン ＋ 生たまご 1杯</div>
             <div class="sub">汁なしカテゴリ検証用（容器代+¥100 + 生たまご¥50）</div>
           </div>
           <span class="price">¥1,050</span>
@@ -250,7 +250,7 @@
 
         <button class="test-action-btn" onclick="sendTestOrder('pork_ramen')">
           <div>
-            <div>🐷 ブタラーメン 1杯</div>
+            <div>ブタラーメン 1杯</div>
             <div class="sub">ブタ系メニュー検証用（ブタ終了トグルのテストに）</div>
           </div>
           <span class="price">¥1,050</span>
@@ -258,7 +258,7 @@
 
         <button class="test-action-btn" onclick="sendBatchOrders(5)" style="border-color: #8b5cf6;">
           <div>
-            <div>⚡ 5件一括注文テスト</div>
+            <div>5件一括注文テスト</div>
             <div class="sub">5件の注文を連続投入して複数伝票の並びをテスト</div>
           </div>
           <span class="price" style="background: #8b5cf6; color: #fff;">5件投入</span>
@@ -268,7 +268,7 @@
       <div class="danger-zone">
         <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">テストデータのクリーンアップ:</div>
         <button class="btn-reset" onclick="resetAllOrders()">
-          🗑️ 注文データをすべてクリア（リセット）
+          注文データをすべてクリア（リセット）
         </button>
       </div>
     </div>
@@ -276,7 +276,7 @@
     <!-- 右パネル: リアルタイム注文モニタ -->
     <div class="panel">
       <div class="panel-title">
-        <span>📋 現在の注文リアルタイム一覧 (<span id="order-count">0</span>件)</span>
+        <span>現在の注文リアルタイム一覧 (<span id="order-count">0</span>件)</span>
         <button onclick="fetchOrders()" style="background: #334155; color: #fff; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">
           ↻ 更新
         </button>
@@ -339,8 +339,8 @@
             <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
               ${itemsSummary} (計 ${o.items.length}杯)
             </div>
-            ${(o.memo || o.note) ? `<div style="font-size: 0.8rem; color: #fbbf24; margin-top: 2px;">📝 メモ: ${(o.memo || o.note)}</div>` : ''}
-            ${o.status === 'COOKING' && o.targetTimestamp ? `<div style="font-size: 0.8rem; color: #38bdf8; margin-top: 2px;">⏱️ 残り 約${Math.max(0, Math.ceil((o.targetTimestamp - Date.now()) / 60000))}分</div>` : ''}
+            ${(o.memo || o.note) ? `<div style="font-size: 0.8rem; color: #fbbf24; margin-top: 2px;">メモ: ${(o.memo || o.note)}</div>` : ''}
+            ${o.status === 'COOKING' && o.targetTimestamp ? `<div style="font-size: 0.8rem; color: #38bdf8; margin-top: 2px;">残り 約${Math.max(0, Math.ceil((o.targetTimestamp - Date.now()) / 60000))}分</div>` : ''}
           </div>
           <div style="display: flex; gap: 6px;">
             ${o.status === 'RECEIVED' ? `<button onclick="updateOrderStatus('${o.id}', 'COOKING')" style="background: #2563eb; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">受付</button>` : ''}
@@ -354,10 +354,10 @@
 
     function getStatusLabel(s) {
       switch (s) {
-        case 'RECEIVED': return '⚠️ 受付待ち';
-        case 'COOKING': return '🍜 調理中';
-        case 'READY': return '🎉 受取待ち';
-        case 'COMPLETED': return '✨ お渡し済';
+        case 'RECEIVED': return '受付待ち';
+        case 'COOKING': return '調理中';
+        case 'READY': return '受取待ち';
+        case 'COMPLETED': return 'お渡し済';
         case 'CANCELLED': return 'キャンセル';
         default: return s;
       }
@@ -447,7 +447,7 @@
         });
         if (res.ok) {
           const created = await res.json();
-          showToast(`✅ テスト注文作成: ${created.orderNumber} (¥${created.totalAmount})`);
+          showToast(`テスト注文作成: ${created.orderNumber} (¥${created.totalAmount})`);
           fetchOrders();
         } else {
           const err = await res.json();
@@ -463,7 +463,7 @@
         await sendTestOrder('single_normal');
         await new Promise(r => setTimeout(r, 200));
       }
-      showToast(`⚡ ${count}件の注文を一括送信しました！`);
+      showToast(`${count}件の注文を一括送信しました！`);
     }
 
     async function updateOrderStatus(id, status) {
@@ -488,7 +488,7 @@
       try {
         const res = await fetch('/api/orders/reset', { method: 'POST' });
         if (res.ok) {
-          showToast('🗑️ すべての注文をクリアしました');
+          showToast('すべての注文をクリアしました');
           fetchOrders();
         }
       } catch (e) {

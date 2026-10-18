@@ -29,7 +29,7 @@ async function unlockCustAudio() {
   window.addEventListener(evt, unlockCustAudio, { passive: true });
 });
 
-// 出来上がり完成チャイム音（明るい「ピンポンパンポ〜ン♪」）
+// 出来上がり完成チャイム音
 function playCustomerReadyChime() {
   try {
     const ctx = getCustAudioContext();
@@ -511,15 +511,15 @@ function setStoreStatus(statusData) {
     } else if (isLimitReached) {
       capacityDot.classList.add('full');
       capacityBadge.classList.add('full');
-      capacityBadge.textContent = `🔴 満枠（現在${maxConcurrent}件対応中）`;
+      capacityBadge.textContent = `満枠（現在${maxConcurrent}件対応中）`;
     } else if (remaining <= 2) {
       capacityDot.classList.add('warning');
       capacityBadge.classList.add('warning');
-      capacityBadge.textContent = `🟡 残り ${remaining}枠（まもなく上限）`;
+      capacityBadge.textContent = `残り ${remaining}枠（まもなく上限）`;
     } else {
       capacityDot.classList.add('open');
       capacityBadge.classList.add('open');
-      capacityBadge.textContent = `🟢 残り ${remaining}枠 注文受付中`;
+      capacityBadge.textContent = `残り ${remaining}枠 注文受付中`;
     }
   }
 
@@ -531,7 +531,7 @@ function setStoreStatus(statusData) {
     storePausedBanner.style.borderColor = '#ef4444';
     if (pausedBannerTitle) {
       pausedBannerTitle.style.color = '#991b1b';
-      pausedBannerTitle.textContent = '🚨 本日は臨時休業とさせていただきます';
+      pausedBannerTitle.textContent = '本日は臨時休業とさせていただきます';
     }
     if (pausedBannerDesc) {
       pausedBannerDesc.style.color = '#7f1d1d';
@@ -547,8 +547,8 @@ function setStoreStatus(statusData) {
     if (pausedBannerTitle) {
       pausedBannerTitle.style.color = '#92400e';
       pausedBannerTitle.textContent = bh.reason === 'CLOSED_DAY' 
-        ? '📅 本日（日曜日）は定休日です' 
-        : '⏳ 只今の時間は営業時間外です';
+        ? '本日（日曜日）は定休日です' 
+        : '只今の時間は営業時間外です';
     }
     if (pausedBannerDesc) {
       pausedBannerDesc.style.color = '#78350f';
@@ -565,11 +565,11 @@ function setStoreStatus(statusData) {
     storePausedBanner.style.borderColor = '#f87171';
     if (pausedBannerTitle) {
       pausedBannerTitle.style.color = '#991b1b';
-      pausedBannerTitle.textContent = '⚠️ 只今、混雑のため予約受付を一時休止しております';
+      pausedBannerTitle.textContent = '只今、混雑のため注文受付を一時休止しております';
     }
     if (pausedBannerDesc) {
       pausedBannerDesc.style.color = '#7f1d1d';
-      pausedBannerDesc.textContent = currentStoreStatus.pauseReason || '現在店内が混み合っているため、新規のテイクアウト注文を一時ストップしています。再開まで今しばらくお待ちください。';
+      pausedBannerDesc.textContent = currentStoreStatus.pauseReason || '現在店内が混み合っているため、新規のご注文を一時ストップしています。再開まで今しばらくお待ちください。';
     }
     welcomeGuideBox.style.display = 'none';
   } else if (isLimitReached) {
@@ -579,11 +579,11 @@ function setStoreStatus(statusData) {
     storePausedBanner.style.borderColor = '#f87171';
     if (pausedBannerTitle) {
       pausedBannerTitle.style.color = '#991b1b';
-      pausedBannerTitle.textContent = `⚠️ 只今、同時注文上限（${maxConcurrent}件）に達しております`;
+      pausedBannerTitle.textContent = `只今、同時注文上限（${maxConcurrent}件）に達しております`;
     }
     if (pausedBannerDesc) {
       pausedBannerDesc.style.color = '#7f1d1d';
-      pausedBannerDesc.textContent = `現在、同時に${maxConcurrent}件のテイクアウト注文を調理・対応中のため、一時的に新規受付をストップしています。調理・お渡しが完了次第、自動的に受付を再開いたします。`;
+      pausedBannerDesc.textContent = `現在、同時に${maxConcurrent}件のご注文を調理・対応中のため、一時的に新規受付をストップしています。調理・お渡しが完了次第、自動的に受付を再開いたします。`;
     }
     welcomeGuideBox.style.display = 'none';
   } else {

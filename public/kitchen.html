@@ -59,7 +59,6 @@
   <!-- 管理者PIN認証ロック画面（未認証時は全画面をガード） -->
   <div id="kitchen-auth-overlay" style="position: fixed; inset: 0; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
     <div id="pin-card-box" style="background: #1e293b; border: 1px solid #334155; border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 360px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); text-align: center;">
-      <div style="font-size: 2.6rem; margin-bottom: 8px;">🔒</div>
       <h2 style="color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 6px;">厨房モニター 管理者認証</h2>
       <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px;">管理者・スタッフ用の暗証番号を入力してください</p>
 
@@ -103,7 +102,7 @@
 
   <!-- 音声有効化案内バナー（ブラウザの自動再生ブロック解除用） -->
   <div id="audio-unlock-banner" style="display: none; background: #ea580c; color: #ffffff; padding: 12px 16px; font-weight: 800; font-size: 1rem; text-align: center; cursor: pointer; border-bottom: 2px solid #c2410c; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);">
-    🔔 【重要】ブラウザの制限で音声が停止しています。ここをタップして注文受付音（チャイム）を有効化してください
+    【重要】ブラウザの制限で音声が停止しています。ここをタップして注文受付音（チャイム）を有効化してください
   </div>
 
   <!-- 厨房ヘッダー -->
@@ -138,12 +137,12 @@
         音声: ON
       </button>
       <button id="btn-sound-test" class="header-action-btn btn-test-sound" title="タップして音が鳴るか確認">
-        🔊
+        音テスト
       </button>
 
       <!-- 画面ロックボタン -->
       <button id="btn-lock-kitchen" class="header-action-btn" title="画面をロックして保護">
-        🔒
+        ロック
       </button>
 
       <!-- 注文画面リンク -->
@@ -202,6 +201,6 @@
     <!-- 動的生成される注文カード -->
   </main>
 
-  <script src="/js/kitchen.js?v=49"></script>
+  <script src="/js/kitchen.js?v=50"></script>
 </body>
 </html>

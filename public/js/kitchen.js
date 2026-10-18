@@ -427,7 +427,7 @@ function renderSoldOutChips() {
   let totalSoldOutCount = 0;
   if (isPorkOut) totalSoldOutCount += porkIds.length;
 
-  // 1. 🐷 ブタ終了（豚切れ）ボタン（ラーメン・汁なしのブタ系メニューを一括で売り切れ・販売中切替）
+  // 1. ブタ終了（豚切れ）ボタン（ラーメン・汁なしのブタ系メニューを一括で売り切れ・販売中切替）
   const porkGroup = document.createElement('div');
   porkGroup.style.display = 'inline-flex';
   porkGroup.style.alignItems = 'center';
@@ -496,10 +496,10 @@ function renderSoldOutChips() {
   if (headerSoldoutPill) {
     if (isPorkOut) {
       headerSoldoutPill.className = 'soldout-mini-pill alert';
-      headerSoldoutPill.textContent = '⚠️ ブタ終了';
+      headerSoldoutPill.textContent = 'ブタ終了';
     } else if (totalSoldOutCount > 0) {
       headerSoldoutPill.className = 'soldout-mini-pill alert';
-      headerSoldoutPill.textContent = `⚠️ 売切 ${totalSoldOutCount}品`;
+      headerSoldoutPill.textContent = `売切 ${totalSoldOutCount}品`;
     } else {
       headerSoldoutPill.className = 'soldout-mini-pill ok';
       headerSoldoutPill.textContent = '全品販売中';
@@ -770,19 +770,19 @@ function renderOrders() {
           if (stats.totalCount === 1) {
             statsBadgeHtml = `
               <span style="background: #0284c7; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 0.78rem;">
-                🌱 初回注文 (通算1回目)
+                初回注文 (通算1回目)
               </span>
             `;
           } else if (stats.isContainerFree) {
             statsBadgeHtml = `
               <span style="background: #16a34a; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 900; font-size: 0.78rem; box-shadow: 0 1px 4px rgba(22,163,74,0.3);">
-                👑 通算${stats.totalCount}回目 (直近30日${stats.monthlyCount}回目) ★容器代無料(4回目〜)
+                通算${stats.totalCount}回目 (直近30日${stats.monthlyCount}回目) 容器代無料(4回目〜)
               </span>
             `;
           } else {
             statsBadgeHtml = `
               <span style="background: #d97706; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 0.78rem;">
-                🌟 通算${stats.totalCount}回目 (直近30日${stats.monthlyCount}回目)
+                通算${stats.totalCount}回目 (直近30日${stats.monthlyCount}回目)
               </span>
             `;
           }
@@ -810,9 +810,9 @@ function renderOrders() {
         ${order.lineUserName ? `
           <div style="background: #064e3b; border: 1px solid #059669; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px;">
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
-              <span style="color: #6ee7b7; font-weight: 800;">🟢 LINE: ${order.lineUserName} 様</span>
+              <span style="color: #6ee7b7; font-weight: 800;">LINE: ${order.lineUserName} 様</span>
               <button onclick="blockOrder('${order.id}', '${order.lineUserName}')" style="background: #991b1b; color: #fecaca; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">
-                🚫 いたずらブロック
+                いたずらブロック
               </button>
             </div>
             ${statsBadgeHtml ? `
