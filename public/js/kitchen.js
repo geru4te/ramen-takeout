@@ -183,6 +183,7 @@ async function unlockAudio() {
     }
   }
   checkAudioStatus();
+  updateNotificationLoop();
 }
 
 function checkAudioStatus() {
@@ -210,6 +211,49 @@ if (audioUnlockBanner) {
     await unlockAudio();
     playNotificationSound();
   });
+}
+
+// 未対応注文（RECEIVED）がある間、一定間隔で繰り返し鳴らすループタイマー
+let notificationLoopTimer = null;
+
+function updateNotificationLoop() {
+  if (!soundEnabled) {
+    stopNotificationLoop();
+    return;
+  }
+
+  // 未対応（RECEIVED）の注文が存在するか確認
+  const hasUnaccepted = Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
+
+  if (hasUnaccepted) {
+    startNotificationLoop();
+  } else {
+    stopNotificationLoop();
+  }
+}
+
+function startNotificationLoop() {
+  if (notificationLoopTimer) return; // 既に鳴動中
+
+  // 初回を即座に再生
+  playNotificationSound();
+
+  // 3.5秒おきに未対応注文がある限り繰り返し鳴らし続ける
+  notificationLoopTimer = setInterval(() => {
+    const hasUnaccepted = Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
+    if (!hasUnaccepted || !soundEnabled) {
+      stopNotificationLoop();
+      return;
+    }
+    playNotificationSound();
+  }, 3500);
+}
+
+function stopNotificationLoop() {
+  if (notificationLoopTimer) {
+    clearInterval(notificationLoopTimer);
+    notificationLoopTimer = null;
+  }
 }
 
 // 新規注文受信チャイム（店舗向け2連ピンポーン音）
@@ -254,11 +298,11 @@ btnSoundToggle.addEventListener('click', async () => {
   if (soundEnabled) {
     btnSoundToggle.textContent = '音声: ON';
     btnSoundToggle.style.color = '#38bdf8';
-    playNotificationSound();
   } else {
     btnSoundToggle.textContent = '音声: OFF';
     btnSoundToggle.style.color = '#94a3b8';
   }
+  updateNotificationLoop();
   checkAudioStatus();
 });
 
@@ -604,6 +648,7 @@ function groupSameItems(items) {
 }
 
 function renderOrders() {
+  updateNotificationLoop();
   ordersGrid.innerHTML = '';
 
   const receivedCount = orders.filter(o => o.status === 'RECEIVED').length;
@@ -1042,7 +1087,6 @@ function updateLocalOrder(updated) {
 socket.on('order:created', (newOrder) => {
   orders.push(newOrder);
   renderOrders();
-  playNotificationSound();
 });
 
 socket.on('order:updated', (updatedOrder) => {
