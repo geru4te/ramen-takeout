@@ -637,6 +637,41 @@ app.get('/api/config/liff', (req, res) => {
   });
 });
 
+// LINE認証リダイレクト時のブラウザ間注文引き継ぎ用一時ストア（有効期限30分）
+const pendingOrdersStore = new Map();
+
+app.post('/api/pending-order', (req, res) => {
+  const { cart, memo } = req.body;
+  if (!cart || !Array.isArray(cart) || cart.length === 0) {
+    return res.status(400).json({ error: 'Cart is empty' });
+  }
+  const id = 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+  pendingOrdersStore.set(id, {
+    cart,
+    memo: memo || '',
+    createdAt: Date.now()
+  });
+
+  // 30分以上経過した古いデータを掃除
+  const now = Date.now();
+  for (const [key, val] of pendingOrdersStore.entries()) {
+    if (now - val.createdAt > 30 * 60 * 1000) {
+      pendingOrdersStore.delete(key);
+    }
+  }
+
+  res.json({ id });
+});
+
+app.get('/api/pending-order/:id', (req, res) => {
+  const { id } = req.params;
+  const data = pendingOrdersStore.get(id);
+  if (!data) {
+    return res.status(404).json({ error: 'Pending order not found or expired' });
+  }
+  res.json(data);
+});
+
 // 厨房からいたずら注文者をブロック（出禁）＆注文キャンセル
 app.post('/api/orders/:id/block', (req, res) => {
   const order = orders.find(o => o.id === req.params.id);

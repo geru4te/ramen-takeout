@@ -267,48 +267,113 @@ async function initLiff() {
   }
 }
 
-// リダイレクト復帰時に保留中の注文を自動送信（注文リセットを完全に防止）
-async function checkPendingOrderAutoSubmit() {
-  let pendingStr = null;
+// 保留中注文をサーバーとローカルストレージの両方に保存（ブラウザ間引き継ぎ対応）
+async function savePendingOrderToServerAndLocal(orderCart, orderMemo) {
+  const pendingData = {
+    cart: orderCart,
+    memo: orderMemo || '',
+    timestamp: Date.now()
+  };
+
   try {
-    pendingStr = localStorage.getItem('ramen_pending_order') || sessionStorage.getItem('ramen_pending_order');
+    localStorage.setItem('ramen_pending_order', JSON.stringify(pendingData));
+    sessionStorage.setItem('ramen_pending_order', JSON.stringify(pendingData));
   } catch (e) {}
+  saveCartToStorage();
 
-  if (!pendingStr) return;
-
+  let pendingId = null;
   try {
-    const pending = JSON.parse(pendingStr);
-    if (!pending || !pending.cart || pending.cart.length === 0) return;
-    if (Date.now() - (pending.timestamp || 0) > 15 * 60 * 1000) return; // 15分以内
-
-    // プロフィールがまだなければ取得を試行
-    if (!liffProfile && window.liff && liff.isLoggedIn()) {
-      try {
-        liffProfile = await liff.getProfile();
-        saveLineProfileCache(liffProfile);
-      } catch (e) {}
+    const res = await fetch('/api/pending-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pendingData)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      pendingId = data.id;
     }
-    if (!liffProfile) {
-      liffProfile = getCachedLineProfile();
-    }
+  } catch (err) {
+    console.warn('Failed to save pending order to server:', err);
+  }
 
-    // LINEアプリ内ブラウザ（isInClient）ならプロフィール取得が制限されても注文を通す
-    if (!liffProfile && window.liff && liff.isInClient && liff.isInClient()) {
-      liffProfile = {
-        userId: 'U_line_client_' + Date.now().toString(36),
-        displayName: 'LINEお客様'
-      };
+  return pendingId;
+}
+
+// リダイレクト復帰時に保留中の注文を自動送信（注文リセット・別ブラウザ遷移を完全に防止）
+async function checkPendingOrderAutoSubmit() {
+  let pending = null;
+
+  // 1. URLパラメータから pending_order を確認（別ブラウザ・標準ブラウザへのリダイレクト対応）
+  const urlParams = new URLSearchParams(window.location.search);
+  const pendingId = urlParams.get('pending_order');
+  if (pendingId) {
+    try {
+      const res = await fetch(`/api/pending-order/${encodeURIComponent(pendingId)}`);
+      if (res.ok) {
+        pending = await res.json();
+      }
+    } catch (e) {
+      console.warn('Failed to fetch pending order from server:', e);
+    }
+  }
+
+  // 2. サーバーから取れなければ同一ブラウザのローカルストレージから取得
+  if (!pending) {
+    try {
+      const s = localStorage.getItem('ramen_pending_order') || sessionStorage.getItem('ramen_pending_order');
+      if (s) pending = JSON.parse(s);
+    } catch (e) {}
+  }
+
+  if (!pending || !pending.cart || pending.cart.length === 0) return;
+  if (Date.now() - (pending.timestamp || pending.createdAt || 0) > 30 * 60 * 1000) return;
+
+  // カートとメモを確実に復元（別ブラウザに飛んでも選んでいた商品が消えないようにする！）
+  cart = pending.cart;
+  if (modalOrderMemo && pending.memo) {
+    modalOrderMemo.value = pending.memo;
+  }
+  saveCartToStorage();
+  updateCartBar();
+
+  // プロフィールがまだなければ取得を試行
+  if (!liffProfile && window.liff && liff.isLoggedIn()) {
+    try {
+      liffProfile = await liff.getProfile();
       saveLineProfileCache(liffProfile);
+      await fetchUserOrderStats(liffProfile.userId);
+    } catch (e) {
+      console.warn('Profile fetch warning in auto submit:', e);
     }
+  }
+  if (!liffProfile) {
+    liffProfile = getCachedLineProfile();
+  }
 
-    if (liffProfile) {
-      localStorage.removeItem('ramen_pending_order');
-      sessionStorage.removeItem('ramen_pending_order');
-      cart = pending.cart;
-      await executeSubmitOrder(pending.cart, pending.memo || '', liffProfile);
-    }
-  } catch (e) {
-    console.error('Pending order submit error:', e);
+  // LINEアプリ内ブラウザ（isInClient）ならプロフィール取得が制限されても注文を通す
+  if (!liffProfile && window.liff && liff.isInClient && liff.isInClient()) {
+    liffProfile = {
+      userId: 'U_line_client_' + Date.now().toString(36),
+      displayName: 'LINEお客様'
+    };
+    saveLineProfileCache(liffProfile);
+  }
+
+  if (liffProfile) {
+    localStorage.removeItem('ramen_pending_order');
+    sessionStorage.removeItem('ramen_pending_order');
+
+    // URLのパラメータを綺麗に消去（pending_order や LIFFの code, state）
+    try {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    } catch (e) {}
+
+    await executeSubmitOrder(pending.cart, pending.memo || '', liffProfile);
+  } else {
+    // もし未認証のままでも、カートは復元済みなので確認画面を開いて表示
+    renderModalCart();
+    if (confirmModal) confirmModal.style.display = 'flex';
   }
 }
 
@@ -319,16 +384,7 @@ if (btnPopupLineAuth) {
     btnPopupLineAuth.textContent = 'LINE認証中...';
 
     const memoVal = modalOrderMemo ? modalOrderMemo.value.trim() : '';
-    const pending = {
-      cart: cart,
-      memo: memoVal,
-      timestamp: Date.now()
-    };
-    try {
-      localStorage.setItem('ramen_pending_order', JSON.stringify(pending));
-      sessionStorage.setItem('ramen_pending_order', JSON.stringify(pending));
-    } catch (e) {}
-    saveCartToStorage();
+    const pendingId = await savePendingOrderToServerAndLocal(cart, memoVal);
 
     if (liffConfigId && window.liff) {
       try {
@@ -356,8 +412,12 @@ if (btnPopupLineAuth) {
           return executeSubmitOrder(cart, memoVal, liffProfile);
         }
 
-        // 外部ブラウザの場合は redirectUri を現在URLに指定してログイン画面へ
-        liff.login({ redirectUri: window.location.href });
+        // 外部ブラウザの場合は redirectUri に pending_order を付与してリダイレクト（ブラウザ間引き継ぎ）
+        let redirectUri = window.location.origin + window.location.pathname;
+        if (pendingId) {
+          redirectUri += `?pending_order=${encodeURIComponent(pendingId)}`;
+        }
+        liff.login({ redirectUri });
       } catch (err) {
         console.error('LIFF auth error in popup:', err);
         // エラー時でもお客様をブロックせず注文確定へフォールバック
@@ -402,7 +462,14 @@ if (btnBannerLineLogin) {
   btnBannerLineLogin.addEventListener('click', async () => {
     btnBannerLineLogin.disabled = true;
     btnBannerLineLogin.textContent = '確認中...';
-    saveCartToStorage();
+
+    const memoVal = modalOrderMemo ? modalOrderMemo.value.trim() : '';
+    let pendingId = null;
+    if (cart.length > 0) {
+      pendingId = await savePendingOrderToServerAndLocal(cart, memoVal);
+    } else {
+      saveCartToStorage();
+    }
 
     if (liffConfigId && window.liff) {
       try {
@@ -417,8 +484,12 @@ if (btnBannerLineLogin) {
             console.warn('Profile fetch warning:', pe);
           }
         }
-        // 未ログイン時はログイン画面へ（戻り先は現在のURL）
-        liff.login({ redirectUri: window.location.href });
+        // 未ログイン時はログイン画面へ（カートがあればpending_order付きで復帰）
+        let redirectUri = window.location.origin + window.location.pathname;
+        if (pendingId) {
+          redirectUri += `?pending_order=${encodeURIComponent(pendingId)}`;
+        }
+        liff.login({ redirectUri });
       } catch (err) {
         console.error('LIFF auth error on banner button:', err);
         btnBannerLineLogin.disabled = false;
@@ -818,6 +889,7 @@ function saveCartToStorage() {
 }
 
 function loadCartFromStorage() {
+  if (cart && cart.length > 0) return; // 既に保留中注文等から復元済みの場合は上書きしない
   try {
     const saved = localStorage.getItem('ramen_temp_cart');
     if (saved) {
@@ -1085,6 +1157,10 @@ async function executeSubmitOrder(orderCart, memoVal, profile) {
       localStorage.removeItem('ramen_temp_cart');
       localStorage.removeItem('ramen_pending_order');
       sessionStorage.removeItem('ramen_pending_order');
+      try {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      } catch (e) {}
     } catch (e) {}
 
     // 注文送信が成功したらカートと保留データをクリア
@@ -1097,7 +1173,7 @@ async function executeSubmitOrder(orderCart, memoVal, profile) {
 
     if (btnSubmitOrder) {
       btnSubmitOrder.disabled = false;
-      btnSubmitOrder.textContent = 'この内容で予約注文を確定する';
+      btnSubmitOrder.textContent = 'この内容で注文を確定する';
     }
     if (btnPopupLineAuth) {
       btnPopupLineAuth.disabled = false;
@@ -1111,7 +1187,7 @@ async function executeSubmitOrder(orderCart, memoVal, profile) {
     console.error(err);
     if (btnSubmitOrder) {
       btnSubmitOrder.disabled = false;
-      btnSubmitOrder.textContent = 'この内容で予約注文を確定する';
+      btnSubmitOrder.textContent = 'この内容で注文を確定する';
     }
     if (btnPopupLineAuth) {
       btnPopupLineAuth.disabled = false;
