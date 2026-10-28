@@ -1284,55 +1284,6 @@ async function checkExistingOrder(id) {
   }
 }
 
-// 注文番号（英数3桁）からの検索・復元モーダル制御
-window.openOrderLookupModal = function() {
-  const modal = document.getElementById('order-lookup-modal');
-  const err = document.getElementById('lookup-error-msg');
-  const input = document.getElementById('input-lookup-number');
-  if (err) err.textContent = '';
-  if (input) {
-    const lastNum = localStorage.getItem('ramen_last_order_num') || '';
-    input.value = lastNum;
-  }
-  if (modal) modal.style.display = 'flex';
-  if (input) setTimeout(() => input.focus(), 100);
-};
-
-window.closeOrderLookupModal = function() {
-  const modal = document.getElementById('order-lookup-modal');
-  if (modal) modal.style.display = 'none';
-};
-
-window.submitOrderLookup = async function() {
-  const input = document.getElementById('input-lookup-number');
-  const err = document.getElementById('lookup-error-msg');
-  const btn = document.getElementById('btn-submit-lookup');
-  if (!input) return;
-
-  const rawNum = input.value.trim().toUpperCase();
-  if (!rawNum) {
-    if (err) err.textContent = '注文番号を入力してください';
-    return;
-  }
-
-  if (btn) btn.disabled = true;
-  if (err) err.textContent = '確認中...';
-
-  try {
-    const res = await fetch(`/api/orders/by-number/${encodeURIComponent(rawNum)}`);
-    if (res.ok) {
-      const order = await res.json();
-      closeOrderLookupModal();
-      showOrderStatus(order);
-    } else {
-      if (err) err.textContent = '該当する注文が見つかりませんでした。番号をご確認ください。';
-    }
-  } catch (e) {
-    if (err) err.textContent = '通信エラーが発生しました。もう一度お試しください。';
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-};
 
 // 注文状況画面の表示（英数3桁番号のみを主役に表示）
 function showOrderStatus(order) {

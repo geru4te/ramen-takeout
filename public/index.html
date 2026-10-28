@@ -11,14 +11,11 @@
 <body>
 
   <!-- ヘッダー -->
-  <header style="display: flex; justify-content: space-between; align-items: center;">
+  <header>
     <div class="logo" onclick="resetToMenu()" style="cursor: pointer;" title="タップで注文トップに戻る">
       <img src="/images/logo.png?v=2" alt="ラーメンエース" class="header-logo-img">
       <span class="logo-sub">モバイルオーダー</span>
     </div>
-    <button type="button" id="btn-open-lookup" onclick="openOrderLookupModal()" style="background: transparent; color: #f8fafc; border: 1px solid #475569; padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap;">
-      注文状況の確認
-    </button>
   </header>
 
   <!-- 混雑・満枠休止中バナー -->
@@ -236,36 +233,6 @@
     </div>
   </div>
 
-  <!-- 注文番号での状況確認・復旧モーダル -->
-  <div id="order-lookup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 10000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);">
-    <div style="background: #ffffff; border-radius: 16px; padding: 24px 20px; width: 100%; max-width: 360px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0f172a;">注文状況の確認</h3>
-        <button type="button" onclick="closeOrderLookupModal()" style="background: transparent; border: none; font-size: 1.4rem; color: #94a3b8; cursor: pointer; line-height: 1;">&times;</button>
-      </div>
-
-      <p style="font-size: 0.85rem; color: #475569; margin-bottom: 16px; line-height: 1.5;">
-        注文完了画面を閉じてしまった場合でも、お呼出番号（英数3桁）を入力すると現在の状況を確認できます。
-      </p>
-
-      <div style="margin-bottom: 14px;">
-        <label for="input-lookup-number" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
-          お受取・お呼出番号（例: A12）
-        </label>
-        <input type="text" id="input-lookup-number" placeholder="例: A12" maxlength="5" style="width: 100%; border: 2px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; box-sizing: border-box; outline: none; text-align: center; letter-spacing: 2px;">
-        <div id="lookup-error-msg" style="color: #dc2626; font-size: 0.8rem; margin-top: 6px; min-height: 18px; font-weight: 700;"></div>
-      </div>
-
-      <button type="button" id="btn-submit-lookup" onclick="submitOrderLookup()" style="width: 100%; background: #0f172a; color: #ffffff; border: none; padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: 800; cursor: pointer;">
-        注文状況を表示する
-      </button>
-
-      <button type="button" onclick="closeOrderLookupModal()" style="width: 100%; background: transparent; color: #64748b; border: none; padding: 10px; font-size: 0.85rem; margin-top: 6px; cursor: pointer;">
-        閉じる
-      </button>
-    </div>
-  </div>
-
-  <script src="/js/customer.js?v=37"></script>
+  <script src="/js/customer.js?v=38"></script>
 </body>
 </html>
