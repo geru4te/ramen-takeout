@@ -499,6 +499,64 @@ app.get('/api/orders/:id', (req, res) => {
   res.json(order);
 });
 
+// LINEユーザーに紐づく直近の進行中注文を取得（タブ削除時の自動復元用）
+app.get('/api/orders/active-by-user', (req, res) => {
+  const { lineUserId } = req.query;
+  if (!lineUserId) {
+    return res.status(400).json({ error: 'lineUserId is required' });
+  }
+
+  // 直近24時間以内の注文を対象
+  const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+  const userOrders = orders.filter(o => {
+    if (o.lineUserId !== lineUserId) return false;
+    const t = new Date(o.createdAt).getTime();
+    return !isNaN(t) && t >= oneDayAgo;
+  });
+
+  if (userOrders.length === 0) {
+    return res.json({ order: null });
+  }
+
+  // 1. まず未完了（進行中）の注文を優先（RECEIVED, COOKING, READY）
+  const activeOrder = userOrders.find(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED');
+  if (activeOrder) {
+    return res.json({ order: activeOrder });
+  }
+
+  // 2. お渡し完了（COMPLETED）でも直近30分以内なら確認できるように返す
+  const latest = userOrders[0];
+  const completedTime = latest.readyAt || latest.createdAt;
+  const isRecent = (Date.now() - new Date(completedTime).getTime()) < 30 * 60 * 1000;
+  if (latest && latest.status === 'COMPLETED' && isRecent) {
+    return res.json({ order: latest });
+  }
+
+  res.json({ order: null });
+});
+
+// 注文番号（英数3桁）からの注文検索・復元用エンドポイント
+app.get('/api/orders/by-number/:orderNumber', (req, res) => {
+  const num = (req.params.orderNumber || '').replace(/^[#＃]/, '').toUpperCase().trim();
+  if (!num) {
+    return res.status(400).json({ error: 'Order number is required' });
+  }
+
+  const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+  const found = orders.find(o => {
+    const cleanO = (o.orderNumber || '').replace(/^[#＃]/, '').toUpperCase().trim();
+    if (cleanO !== num) return false;
+    const t = new Date(o.createdAt).getTime();
+    return !isNaN(t) && t >= oneDayAgo;
+  });
+
+  if (!found) {
+    return res.status(404).json({ error: 'Order not found' });
+  }
+
+  res.json(found);
+});
+
 // ユーザーの注文回数と特典ステータスを取得（注文画面用）
 app.get('/api/user/order-stats', (req, res) => {
   const { lineUserId } = req.query;

@@ -525,19 +525,82 @@ let currentStoreStatus = {
   canAccept: true
 };
 
-window.addEventListener('DOMContentLoaded', async () => {
-  currentOrderId = localStorage.getItem('ramen_order_id') || sessionStorage.getItem('ramen_order_id') || null;
+let userActiveOrder = null;
 
+// LINEユーザーIDから直近の進行中注文を確認・自動復旧
+async function checkActiveOrderByUser(userId) {
+  if (!userId) return null;
+  try {
+    const res = await fetch(`/api/orders/active-by-user?lineUserId=${encodeURIComponent(userId)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.order) {
+        userActiveOrder = data.order;
+        return data.order;
+      }
+    }
+  } catch (e) {
+    console.warn('Check active order error:', e);
+  }
+  return null;
+}
+
+// 進行中注文案内バナーの更新（メニュー画面上部）
+function updateActiveOrderBanner(order) {
+  const banner = document.getElementById('active-order-banner');
+  const bannerNum = document.getElementById('active-order-banner-num');
+  if (!banner) return;
+
+  if (order && order.status !== 'COMPLETED' && order.status !== 'CANCELLED') {
+    userActiveOrder = order;
+    if (bannerNum) {
+      bannerNum.textContent = '#' + (order.orderNumber || '').replace(/^[#＃]/, '');
+    }
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+window.showActiveOrderFromBanner = function() {
+  if (userActiveOrder) {
+    showOrderStatus(userActiveOrder);
+  } else if (currentOrderId) {
+    checkExistingOrder(currentOrderId);
+  }
+};
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlOrderId = urlParams.get('order_id');
+
+  currentOrderId = urlOrderId || localStorage.getItem('ramen_order_id') || sessionStorage.getItem('ramen_order_id') || null;
+
+  // 1. URLパラメータまたはローカルストレージから既存注文の復元試行
+  if (currentOrderId) {
+    await checkExistingOrder(currentOrderId);
+  }
+
+  // 2. LIFFおよびLINEプロフィールの初期化
   await initLiff();
+
+  // 3. 【最重要】タブ削除等でストレージが消えても、LINE認証から直近の進行中注文をサーバー検索して自動復旧！
+  if (!currentOrder && liffProfile && liffProfile.userId) {
+    const active = await checkActiveOrderByUser(liffProfile.userId);
+    if (active) {
+      showOrderStatus(active);
+    }
+  }
+
   await fetchStoreStatus();
   await fetchMenu();
   loadCartFromStorage();
 
-  // 自動注文確定された場合、または既存の有効な注文がある場合は受付完了画面を確実に表示
+  // 注文完了画面が表示されていない場合でも、進行中注文があれば案内バナーを表示
   if (currentOrder) {
     showOrderStatus(currentOrder);
-  } else if (currentOrderId) {
-    await checkExistingOrder(currentOrderId);
+  } else if (userActiveOrder) {
+    updateActiveOrderBanner(userActiveOrder);
   }
 });
 
@@ -1197,6 +1260,7 @@ async function executeSubmitOrder(orderCart, memoVal, profile) {
 }
 
 async function checkExistingOrder(id) {
+  if (!id) return;
   try {
     const res = await fetch(`/api/orders/${id}`);
     if (res.ok) {
@@ -1204,7 +1268,15 @@ async function checkExistingOrder(id) {
       if (order.status !== 'COMPLETED' && order.status !== 'CANCELLED') {
         showOrderStatus(order);
       } else {
-        localStorage.removeItem('ramen_order_id');
+        // お渡し完了後30分以内なら再表示を許可（タブを再読み込み・再アクセスしても見られるようにする）
+        const completedTime = order.readyAt || order.createdAt;
+        const isRecent = (Date.now() - new Date(completedTime).getTime()) < 30 * 60 * 1000;
+        if (isRecent) {
+          showOrderStatus(order);
+        } else {
+          localStorage.removeItem('ramen_order_id');
+          sessionStorage.removeItem('ramen_order_id');
+        }
       }
     }
   } catch (err) {
@@ -1212,10 +1284,76 @@ async function checkExistingOrder(id) {
   }
 }
 
+// 注文番号（英数3桁）からの検索・復元モーダル制御
+window.openOrderLookupModal = function() {
+  const modal = document.getElementById('order-lookup-modal');
+  const err = document.getElementById('lookup-error-msg');
+  const input = document.getElementById('input-lookup-number');
+  if (err) err.textContent = '';
+  if (input) {
+    const lastNum = localStorage.getItem('ramen_last_order_num') || '';
+    input.value = lastNum;
+  }
+  if (modal) modal.style.display = 'flex';
+  if (input) setTimeout(() => input.focus(), 100);
+};
+
+window.closeOrderLookupModal = function() {
+  const modal = document.getElementById('order-lookup-modal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.submitOrderLookup = async function() {
+  const input = document.getElementById('input-lookup-number');
+  const err = document.getElementById('lookup-error-msg');
+  const btn = document.getElementById('btn-submit-lookup');
+  if (!input) return;
+
+  const rawNum = input.value.trim().toUpperCase();
+  if (!rawNum) {
+    if (err) err.textContent = '注文番号を入力してください';
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (err) err.textContent = '確認中...';
+
+  try {
+    const res = await fetch(`/api/orders/by-number/${encodeURIComponent(rawNum)}`);
+    if (res.ok) {
+      const order = await res.json();
+      closeOrderLookupModal();
+      showOrderStatus(order);
+    } else {
+      if (err) err.textContent = '該当する注文が見つかりませんでした。番号をご確認ください。';
+    }
+  } catch (e) {
+    if (err) err.textContent = '通信エラーが発生しました。もう一度お試しください。';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};
+
 // 注文状況画面の表示（英数3桁番号のみを主役に表示）
 function showOrderStatus(order) {
   if (!order) return;
   currentOrder = order;
+  userActiveOrder = order;
+
+  // 1. URLパーマリンク化（タブを閉じてもブラウザ履歴・URLから確実に復元可能にする）
+  try {
+    const orderUrl = new URL(window.location.origin + window.location.pathname);
+    orderUrl.searchParams.set('order_id', order.id);
+    window.history.replaceState({}, document.title, orderUrl.toString());
+  } catch (e) {}
+
+  // 2. ストレージに永続化
+  currentOrderId = order.id;
+  try {
+    localStorage.setItem('ramen_order_id', order.id);
+    sessionStorage.setItem('ramen_order_id', order.id);
+    localStorage.setItem('ramen_last_order_num', (order.orderNumber || '').replace(/^[#＃]/, ''));
+  } catch (e) {}
 
   // メニュー画面・カートバー・モーダルをすべて確実に非表示にし、受付完了画面を表示
   if (menuListView) menuListView.style.display = 'none';
@@ -1223,6 +1361,10 @@ function showOrderStatus(order) {
   if (confirmModal) confirmModal.style.display = 'none';
   if (lineAuthModal) lineAuthModal.style.display = 'none';
   if (orderStatusView) orderStatusView.style.display = 'block';
+
+  // 進行中案内バナーは状況画面内では非表示
+  const banner = document.getElementById('active-order-banner');
+  if (banner) banner.style.display = 'none';
 
   // 英数3桁（#を確実に除去して表示）
   const cleanNum = (order.orderNumber || '').replace(/^[#＃]/, '');
