@@ -299,11 +299,44 @@ async function savePendingOrderToServerAndLocal(orderCart, orderMemo) {
   return pendingId;
 }
 
+let isSubmittingOrder = false;
+
 // リダイレクト復帰時に保留中の注文を自動送信（注文リセット・別ブラウザ遷移を完全に防止）
 async function checkPendingOrderAutoSubmit() {
+  // 1. すでに注文が復元・表示されている、または送信中の場合は絶対に二重実行しない
+  if (currentOrder || currentOrderId || isSubmittingOrder) {
+    try {
+      localStorage.removeItem('ramen_pending_order');
+      sessionStorage.removeItem('ramen_pending_order');
+    } catch (e) {}
+    return;
+  }
+
+  // 2. LINEユーザーが特定できている場合、サーバー上に進行中の注文がすでにあるか確認
+  // （初回認証直後にリロードされた場合、すでに注文が存在するため新規注文の二重作成を完全防止！）
+  if (liffProfile && liffProfile.userId) {
+    try {
+      const active = await checkActiveOrderByUser(liffProfile.userId);
+      if (active) {
+        try {
+          localStorage.removeItem('ramen_pending_order');
+          sessionStorage.removeItem('ramen_pending_order');
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete('pending_order');
+          cleanUrl.searchParams.set('order_id', active.id);
+          window.history.replaceState({}, document.title, cleanUrl.toString());
+        } catch (e) {}
+        showOrderStatus(active);
+        return;
+      }
+    } catch (e) {
+      console.warn('Active order check before auto-submit error:', e);
+    }
+  }
+
   let pending = null;
 
-  // 1. URLパラメータから pending_order を確認（別ブラウザ・標準ブラウザへのリダイレクト対応）
+  // 3. URLパラメータから pending_order を確認（別ブラウザ・標準ブラウザへのリダイレクト対応）
   const urlParams = new URLSearchParams(window.location.search);
   const pendingId = urlParams.get('pending_order');
   if (pendingId) {
@@ -312,12 +345,18 @@ async function checkPendingOrderAutoSubmit() {
       if (res.ok) {
         pending = await res.json();
       }
+      // URLから pending_order パラメータを即時消去（リロード時の再取得を防止）
+      try {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('pending_order');
+        window.history.replaceState({}, document.title, cleanUrl.toString());
+      } catch (e) {}
     } catch (e) {
       console.warn('Failed to fetch pending order from server:', e);
     }
   }
 
-  // 2. サーバーから取れなければ同一ブラウザのローカルストレージから取得
+  // 4. サーバーから取れなければ同一ブラウザのローカルストレージから取得
   if (!pending) {
     try {
       const s = localStorage.getItem('ramen_pending_order') || sessionStorage.getItem('ramen_pending_order');
@@ -327,6 +366,12 @@ async function checkPendingOrderAutoSubmit() {
 
   if (!pending || !pending.cart || pending.cart.length === 0) return;
   if (Date.now() - (pending.timestamp || pending.createdAt || 0) > 30 * 60 * 1000) return;
+
+  // 保留注文データをストレージから即時削除（二重送信を防止）
+  try {
+    localStorage.removeItem('ramen_pending_order');
+    sessionStorage.removeItem('ramen_pending_order');
+  } catch (e) {}
 
   // カートとメモを確実に復元（別ブラウザに飛んでも選んでいた商品が消えないようにする！）
   cart = pending.cart;
@@ -360,9 +405,6 @@ async function checkPendingOrderAutoSubmit() {
   }
 
   if (liffProfile) {
-    localStorage.removeItem('ramen_pending_order');
-    sessionStorage.removeItem('ramen_pending_order');
-
     // URLのパラメータを綺麗に消去（pending_order や LIFFの code, state）
     try {
       const cleanUrl = window.location.origin + window.location.pathname;
@@ -1181,10 +1223,13 @@ btnSubmitOrder.addEventListener('click', async () => {
 
 // 注文送信処理共通関数（認証後やリダイレクト復帰後の自動確定からも呼び出し可能）
 async function executeSubmitOrder(orderCart, memoVal, profile) {
+  if (isSubmittingOrder) return;
   if (!orderCart || orderCart.length === 0) {
     alert('カートが空です。');
     return;
   }
+
+  isSubmittingOrder = true;
 
   if (btnSubmitOrder) {
     btnSubmitOrder.disabled = true;
@@ -1213,21 +1258,22 @@ async function executeSubmitOrder(orderCart, memoVal, profile) {
     }
 
     const order = await res.json();
+    currentOrder = order;
     currentOrderId = order.id;
+    userActiveOrder = order;
+
     try {
       localStorage.setItem('ramen_order_id', order.id);
       sessionStorage.setItem('ramen_order_id', order.id);
+      localStorage.setItem('ramen_last_order_num', (order.orderNumber || '').replace(/^[#＃]/, ''));
       localStorage.removeItem('ramen_temp_cart');
       localStorage.removeItem('ramen_pending_order');
       sessionStorage.removeItem('ramen_pending_order');
-      try {
-        const cleanUrl = window.location.origin + window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-      } catch (e) {}
     } catch (e) {}
 
     // 注文送信が成功したらカートと保留データをクリア
     cart = [];
+    saveCartToStorage();
     if (modalOrderMemo) modalOrderMemo.value = '';
     updateCartBar();
 
@@ -1256,6 +1302,8 @@ async function executeSubmitOrder(orderCart, memoVal, profile) {
       btnPopupLineAuth.disabled = false;
       btnPopupLineAuth.textContent = 'LINEで認証して注文を確定する';
     }
+  } finally {
+    isSubmittingOrder = false;
   }
 }
 

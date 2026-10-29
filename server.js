@@ -727,7 +727,15 @@ app.get('/api/pending-order/:id', (req, res) => {
   if (!data) {
     return res.status(404).json({ error: 'Pending order not found or expired' });
   }
+  // 1回取得されたら消費済みとして即時削除（リロード等での二重注文作成を完全に防止）
+  pendingOrdersStore.delete(id);
   res.json(data);
+});
+
+app.delete('/api/pending-order/:id', (req, res) => {
+  const { id } = req.params;
+  pendingOrdersStore.delete(id);
+  res.json({ success: true });
 });
 
 // 厨房からいたずら注文者をブロック（出禁）＆注文キャンセル
