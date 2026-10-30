@@ -1,8 +1,22 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+
+// .env が存在する場合は環境変数をロード
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  try {
+    fs.readFileSync(envPath, 'utf-8').split('\n').forEach(line => {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match && !process.env[match[1]]) {
+        process.env[match[1]] = (match[2] || '').trim();
+      }
+    });
+  } catch (e) {}
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -113,6 +127,147 @@ const MAX_CONCURRENT_ORDERS = 10; // 同時に受けられる最大注文数
 const ordersPath = path.join(__dirname, 'data', 'orders.json');
 let orders = [];
 
+// GitHub による注文データの永続化バックアップ設定（再起動・再デプロイ後も完全保持）
+const GITHUB_OWNER = process.env.GITHUB_OWNER || 'geru4te';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'ramen-takeout';
+const GITHUB_DATA_BRANCH = 'data-storage';
+const GITHUB_DATA_FILE = 'orders.json';
+
+let lastGitHubSha = null;
+let isSyncingToGitHub = false;
+let pendingSyncTimer = null;
+let lastSyncSuccessTime = null;
+let lastSyncStatus = '未実行';
+
+function callGitHubApi(endpoint, method = 'GET', data = null) {
+  return new Promise((resolve, reject) => {
+    const token = process.env.GITHUB_TOKEN;
+    if (!token) return resolve(null);
+    const bodyStr = data ? JSON.stringify(data) : null;
+    const options = {
+      hostname: 'api.github.com',
+      port: 443,
+      path: endpoint,
+      method: method,
+      headers: {
+        'User-Agent': 'Ramen-Takeout-Server',
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    };
+    if (bodyStr) {
+      options.headers['Content-Type'] = 'application/json';
+      options.headers['Content-Length'] = Buffer.byteLength(bodyStr);
+    }
+
+    const req = https.request(options, (res) => {
+      let responseBody = '';
+      res.on('data', (chunk) => { responseBody += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            resolve(responseBody ? JSON.parse(responseBody) : {});
+          } catch (e) {
+            resolve({});
+          }
+        } else {
+          reject(new Error(`GitHub API Error: ${res.statusCode} ${responseBody}`));
+        }
+      });
+    });
+
+    req.on('error', (err) => reject(err));
+    req.setTimeout(8000, () => {
+      req.destroy();
+      reject(new Error('GitHub API request timed out'));
+    });
+
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+// サーバー起動時にGitHubから注文履歴を復元
+async function loadOrdersFromGitHub() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    lastSyncStatus = 'GITHUB_TOKEN未設定（ローカル保存のみ動作中）';
+    console.log('[GitHub Sync] GITHUB_TOKEN が未設定のためローカル保存のみで動作します。');
+    return false;
+  }
+  try {
+    const endpoint = `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_DATA_FILE}?ref=${GITHUB_DATA_BRANCH}`;
+    const res = await callGitHubApi(endpoint, 'GET');
+    if (res && res.content) {
+      lastGitHubSha = res.sha;
+      const jsonStr = Buffer.from(res.content, 'base64').toString('utf-8');
+      const loaded = JSON.parse(jsonStr);
+      if (Array.isArray(loaded)) {
+        orders = loaded;
+        lastSyncSuccessTime = new Date().toISOString();
+        lastSyncStatus = `正常復元 (${orders.length} 件)`;
+        console.log(`[GitHub Sync] orders.json をGitHub (${GITHUB_DATA_BRANCH}) から復元しました: ${orders.length} 件`);
+        try {
+          const dir = path.dirname(ordersPath);
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(ordersPath, JSON.stringify(orders, null, 2), 'utf-8');
+        } catch (e) {}
+        return true;
+      }
+    }
+  } catch (err) {
+    lastSyncStatus = `復元失敗: ${err.message || err}`;
+    console.error('[GitHub Sync] orders.json の取得に失敗:', err.message || err);
+  }
+  return false;
+}
+
+// 注文が追加・更新された際にGitHubへ非同期バックアップ
+async function syncOrdersToGitHub() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return;
+  if (isSyncingToGitHub) {
+    if (pendingSyncTimer) clearTimeout(pendingSyncTimer);
+    pendingSyncTimer = setTimeout(syncOrdersToGitHub, 2000);
+    return;
+  }
+  isSyncingToGitHub = true;
+  try {
+    const endpoint = `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_DATA_FILE}?ref=${GITHUB_DATA_BRANCH}`;
+    try {
+      const currentFile = await callGitHubApi(endpoint, 'GET');
+      if (currentFile && currentFile.sha) {
+        lastGitHubSha = currentFile.sha;
+      }
+    } catch (e) {}
+
+    const trimmed = orders.slice(0, 500);
+    const contentBase64 = Buffer.from(JSON.stringify(trimmed, null, 2), 'utf-8').toString('base64');
+
+    const updatePayload = {
+      message: `Update orders.json backup (${orders.length} orders)`,
+      content: contentBase64,
+      branch: GITHUB_DATA_BRANCH
+    };
+    if (lastGitHubSha) {
+      updatePayload.sha = lastGitHubSha;
+    }
+
+    const updateRes = await callGitHubApi(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_DATA_FILE}`, 'PUT', updatePayload);
+    if (updateRes && updateRes.content && updateRes.content.sha) {
+      lastGitHubSha = updateRes.content.sha;
+      lastSyncSuccessTime = new Date().toISOString();
+      lastSyncStatus = `同期成功 (${orders.length} 件)`;
+      console.log(`[GitHub Sync] orders.json をGitHub (${GITHUB_DATA_BRANCH}) に永続化バックアップしました: ${orders.length} 件`);
+    }
+  } catch (err) {
+    lastSyncStatus = `バックアップ失敗: ${err.message || err}`;
+    console.error('[GitHub Sync] GitHubへのバックアップに失敗:', err.message || err);
+  } finally {
+    isSyncingToGitHub = false;
+  }
+}
+
 function loadOrders() {
   try {
     if (fs.existsSync(ordersPath)) {
@@ -135,6 +290,8 @@ function saveOrders() {
   } catch (err) {
     console.error('Failed to save orders.json:', err);
   }
+  // GitHub の data-storage ブランチへ自動バックアップ（再起動後も永続保持）
+  syncOrdersToGitHub().catch(() => {});
 }
 
 // 注文データ内の麺類杯数を集計するヘルパー
@@ -845,6 +1002,29 @@ app.post('/api/orders/reset', (req, res) => {
   res.json({ success: true, message: 'All orders reset' });
 });
 
+// GitHub永続化同期ステータス確認API
+app.get('/api/admin/sync-status', (req, res) => {
+  res.json({
+    hasToken: Boolean(process.env.GITHUB_TOKEN),
+    owner: GITHUB_OWNER,
+    repo: GITHUB_REPO,
+    branch: GITHUB_DATA_BRANCH,
+    lastSyncStatus,
+    lastSyncSuccessTime,
+    ordersCount: orders.length
+  });
+});
+
+// 手動同期トリガーAPI（必要時）
+app.post('/api/admin/sync-now', async (req, res) => {
+  try {
+    await syncOrdersToGitHub();
+    res.json({ success: true, message: 'GitHubへのバックアップが完了しました', status: lastSyncStatus });
+  } catch (err) {
+    res.status(500).json({ error: err.message || '同期に失敗しました' });
+  }
+});
+
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
   // 接続時に最新の受付状況を送信
@@ -854,7 +1034,7 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', async () => {
   console.log(`===============================================`);
   console.log(`🍜 ラーメン店 テイクアウト注文システム 起動中`);
   console.log(`📱 お客様用画面 (PC自身)   : http://localhost:${PORT}/`);
@@ -862,4 +1042,15 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`📟 厨房モニター (PC自身)   : http://localhost:${PORT}/kitchen.html`);
   console.log(`📟 厨房モニター (同一Wi-Fi): http://192.168.1.57:${PORT}/kitchen.html`);
   console.log(`===============================================`);
+
+  // サーバー起動時にGitHubの data-storage ブランチから最新の注文履歴を自動復元
+  if (process.env.GITHUB_TOKEN) {
+    console.log('[Startup] GitHub (data-storage ブランチ) から注文履歴の復元を開始します...');
+    const restored = await loadOrdersFromGitHub();
+    if (restored) {
+      io.emit('store:status_changed', getStoreStatus());
+    }
+  } else {
+    console.log('[Startup] GITHUB_TOKEN 未設定のため、ローカル注文データで起動しました。');
+  }
 });
