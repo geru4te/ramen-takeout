@@ -1,5 +1,54 @@
 [
   {
+    "id": "ord_1793541849889_cmch",
+    "orderNumber": "8L3",
+    "items": [
+      {
+        "cartUid": "1793541846850_8sf8",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 750
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      }
+    ],
+    "totalAmount": 750,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "RECEIVED",
+    "createdAt": "2026-11-01T14:04:09.889Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 9,
+      "monthlyCount": 9,
+      "totalBowlCount": 9,
+      "monthlyBowlCount": 9,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    }
+  },
+  {
     "id": "ord_1793541453536_7sny",
     "orderNumber": "U64",
     "items": [
