@@ -1,5 +1,66 @@
 [
   {
+    "id": "ord_1793539908025_29fz",
+    "orderNumber": "ND6",
+    "items": [
+      {
+        "cartUid": "1793539905463_dh8z",
+        "id": "r2",
+        "name": "ラーメン（少なめ）",
+        "category": "ラーメン",
+        "price": 800,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ラーメン（少なめ）券",
+            "price": 800
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "アブラ"
+        ],
+        "paidToppings": [],
+        "itemTotal": 900
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ラーメン（少なめ）券",
+        "price": 800,
+        "quantity": 1,
+        "subtotal": 800
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      }
+    ],
+    "totalAmount": 900,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "RECEIVED",
+    "createdAt": "2026-11-01T13:31:48.025Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 2,
+      "monthlyCount": 2,
+      "totalBowlCount": 2,
+      "monthlyBowlCount": 2,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    }
+  },
+  {
     "id": "ord_1793538417863_7tu1",
     "orderNumber": "8XT",
     "items": [
