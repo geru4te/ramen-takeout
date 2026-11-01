@@ -1,5 +1,51 @@
 [
   {
+    "id": "ord_1793543749490_qpb2",
+    "orderNumber": "55M",
+    "items": [
+      {
+        "id": "ramen-regular",
+        "name": "ラーメン (並)",
+        "price": 950,
+        "quantity": 1,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "itemTotal": 1050
+      }
+    ],
+    "tickets": [
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      }
+    ],
+    "totalAmount": 1050,
+    "note": "",
+    "memo": "",
+    "lineUserId": null,
+    "lineUserName": null,
+    "status": "RECEIVED",
+    "createdAt": "2026-11-01T14:35:49.490Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 1,
+      "monthlyCount": 1,
+      "totalBowlCount": 1,
+      "monthlyBowlCount": 1,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    }
+  },
+  {
     "id": "ord_1793543720660_l5lt",
     "orderNumber": "53L",
     "items": [
