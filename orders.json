@@ -31,10 +31,10 @@
     "memo": "",
     "lineUserId": null,
     "lineUserName": null,
-    "status": "RECEIVED",
+    "status": "COOKING",
     "createdAt": "2026-11-01T14:35:49.490Z",
-    "targetTimestamp": null,
-    "estimatedMinutes": null,
+    "targetTimestamp": 1793544354545,
+    "estimatedMinutes": 10,
     "readyAt": null,
     "userOrderStats": {
       "totalCount": 1,
@@ -43,7 +43,8 @@
       "monthlyBowlCount": 1,
       "isContainerFree": false,
       "savedContainerFee": 0
-    }
+    },
+    "estimatedTime": "23:45"
   },
   {
     "id": "ord_1793543720660_l5lt",
