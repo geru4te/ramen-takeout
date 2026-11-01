@@ -675,20 +675,13 @@ app.get('/api/orders/active-by-user', (req, res) => {
     return res.json({ order: null });
   }
 
-  // 1. まず未完了（進行中）の注文を優先（RECEIVED, COOKING, READY）
+  // 1. 未完了（進行中）の注文のみをアクティブとして返す（RECEIVED, COOKING, READY）
   const activeOrder = userOrders.find(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED');
   if (activeOrder) {
     return res.json({ order: activeOrder });
   }
 
-  // 2. お渡し完了（COMPLETED）でも直近30分以内なら確認できるように返す
-  const latest = userOrders[0];
-  const completedTime = latest.readyAt || latest.createdAt;
-  const isRecent = (Date.now() - new Date(completedTime).getTime()) < 30 * 60 * 1000;
-  if (latest && latest.status === 'COMPLETED' && isRecent) {
-    return res.json({ order: latest });
-  }
-
+  // お渡し完了（COMPLETED）またはキャンセルの注文は終了済みのため null を返す
   res.json({ order: null });
 });
 

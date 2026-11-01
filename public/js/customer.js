@@ -1309,6 +1309,17 @@ async function executeSubmitOrder(orderCart, memoVal, profile) {
 
 async function checkExistingOrder(id) {
   if (!id) return;
+
+  // ユーザーが明示的に「閉じる」を押した完了注文は再表示しない
+  try {
+    const dismissedId = localStorage.getItem('ramen_dismissed_order_id');
+    if (dismissedId && dismissedId === id) {
+      localStorage.removeItem('ramen_order_id');
+      sessionStorage.removeItem('ramen_order_id');
+      return;
+    }
+  } catch (e) {}
+
   try {
     const res = await fetch(`/api/orders/${id}`);
     if (res.ok) {
@@ -1316,15 +1327,11 @@ async function checkExistingOrder(id) {
       if (order.status !== 'COMPLETED' && order.status !== 'CANCELLED') {
         showOrderStatus(order);
       } else {
-        // お渡し完了後30分以内なら再表示を許可（タブを再読み込み・再アクセスしても見られるようにする）
-        const completedTime = order.readyAt || order.createdAt;
-        const isRecent = (Date.now() - new Date(completedTime).getTime()) < 30 * 60 * 1000;
-        if (isRecent) {
-          showOrderStatus(order);
-        } else {
+        // すでに受け渡し完了・キャンセルの注文はストレージから消去し、注文トップを表示
+        try {
           localStorage.removeItem('ramen_order_id');
           sessionStorage.removeItem('ramen_order_id');
-        }
+        } catch (e) {}
       }
     }
   } catch (err) {
@@ -1603,6 +1610,12 @@ socket.on('menu:soldout_changed', (data) => {
 });
 
 window.resetToMenu = function() {
+  const targetId = currentOrderId || (currentOrder && currentOrder.id);
+  if (targetId) {
+    try {
+      localStorage.setItem('ramen_dismissed_order_id', targetId);
+    } catch (e) {}
+  }
   try {
     localStorage.removeItem('ramen_order_id');
     sessionStorage.removeItem('ramen_order_id');
@@ -1612,10 +1625,21 @@ window.resetToMenu = function() {
   } catch (e) {}
   currentOrder = null;
   currentOrderId = null;
-  location.reload();
+  userActiveOrder = null;
+  const cleanUrl = window.location.origin + window.location.pathname;
+  window.location.replace(cleanUrl);
 };
 
 window.closeAppWindow = function() {
+  const targetId = currentOrderId || (currentOrder && currentOrder.id);
+  // 1. 今回の完了注文を「確認済み（閉じた）」として記録（再表示防止）
+  if (targetId) {
+    try {
+      localStorage.setItem('ramen_dismissed_order_id', targetId);
+    } catch (e) {}
+  }
+
+  // 2. 注文関連ストレージをクリア
   try {
     localStorage.removeItem('ramen_order_id');
     sessionStorage.removeItem('ramen_order_id');
@@ -1625,23 +1649,23 @@ window.closeAppWindow = function() {
   } catch (e) {}
   currentOrder = null;
   currentOrderId = null;
+  userActiveOrder = null;
 
-  // 1. LINE/LIFFアプリ内ならウィンドウを閉じる試み
+  // 3. LINE/LIFFアプリ内ならウィンドウを閉じる
   if (window.liff && typeof window.liff.closeWindow === 'function') {
     try {
       window.liff.closeWindow();
     } catch (e) {}
   }
 
-  // 2. ブラウザウィンドウを閉じる試み
+  // 4. ブラウザウィンドウを閉じる試み
   try {
     window.close();
   } catch (e) {}
 
-  // 3. ブラウザが閉じない環境（通常ブラウザ等）では、即座にトップメニュー画面に戻す
-  setTimeout(() => {
-    location.reload();
-  }, 120);
+  // 5. ブラウザのセキュリティ仕様で閉じない環境（Safari/Chrome等）では、URLパラメータを消去してトップメニュー画面へ即座に復帰！
+  const cleanUrl = window.location.origin + window.location.pathname;
+  window.location.replace(cleanUrl);
 };
 
 // 調理中オーダーの残り時間を10秒ごとにリアルタイム再計算
