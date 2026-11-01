@@ -183,7 +183,7 @@ function updateRepeatRewardUI() {
     ? currentUserStats.remainingForFree 
     : Math.max(0, 3 - monthly);
 
-  if (currentUserStats.isContainerFree) {
+  if (currentUserStats.isContainerFree || monthly >= 3) {
     repeatRewardText.innerHTML = `<strong>リピーター特典適用中:</strong> 直近30日間に${monthly}回ご利用中！今回の注文（4回目以降）は容器代（1杯100円）が【無料】になります！`;
   } else if (remaining === 1) {
     repeatRewardText.innerHTML = `<strong>リピーター特典:</strong> 直近30日間に${monthly}回ご利用済み！あと1回のご注文で次回（4回目）から容器代が無料になります！`;
@@ -223,10 +223,12 @@ async function initLiff() {
     const data = await res.json();
     liffConfigId = data.liffId || null;
 
-    // まずキャッシュからプロフィールを復元（LINEアプリ内での高速化）
+    // まずキャッシュからプロフィールを復元（LINE内ブラウザ・再訪問時の高速化）
     const cached = getCachedLineProfile();
     if (cached) {
       liffProfile = cached;
+      // キャッシュが存在する場合、即座にサーバーから最新の注文回数・特典状況を取得
+      await fetchUserOrderStats(cached.userId);
     }
 
     if (liffConfigId && window.liff) {
@@ -637,6 +639,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   await fetchStoreStatus();
   await fetchMenu();
   loadCartFromStorage();
+
+  // プロフィールがあれば最新の利用統計（30日以内の注文回数）を確実に取得してUI更新
+  if (liffProfile && liffProfile.userId) {
+    await fetchUserOrderStats(liffProfile.userId);
+  }
 
   // 注文完了画面が表示されていない場合でも、進行中注文があれば案内バナーを表示
   if (currentOrder) {
@@ -1276,6 +1283,19 @@ async function executeSubmitOrder(orderCart, memoVal, profile) {
     saveCartToStorage();
     if (modalOrderMemo) modalOrderMemo.value = '';
     updateCartBar();
+
+    // 注文後のユーザー利用統計（30日以内の注文回数）を即時更新！
+    if (order.userOrderStats) {
+      currentUserStats = {
+        totalCount: order.userOrderStats.totalCount || 0,
+        monthlyCount: order.userOrderStats.monthlyCount || 0,
+        isContainerFree: Boolean(order.userOrderStats.isContainerFree),
+        remainingForFree: Math.max(0, 3 - (order.userOrderStats.monthlyCount || 0))
+      };
+      updateRepeatRewardUI();
+    } else if (profile && profile.userId) {
+      fetchUserOrderStats(profile.userId).catch(() => {});
+    }
 
     if (confirmModal) confirmModal.style.display = 'none';
     if (lineAuthModal) lineAuthModal.style.display = 'none';
