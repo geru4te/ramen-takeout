@@ -157,7 +157,7 @@ let storeStatus = {
   isLimitReached: false
 };
 
-// 着信チャイム音管理（ネイティブオーディオ + Web Audio API のデュアル構成）
+// 着信チャイム音管理（ネイティブオーディオ + 3重ループ安全保証 + Web Audioフォールバック）
 const kitchenOrderAudio = document.getElementById('kitchen-order-audio');
 let audioUnlocked = false;
 let audioCtx = null;
@@ -165,7 +165,7 @@ let soundEnabled = true;
 
 // チャイム鳴動管理
 let chimeStartTime = 0;
-let fallbackIntervalTimer = null;
+let watchdogTimer = null;
 const MAX_CHIME_DURATION_MS = 3 * 60 * 1000; // 最大3分間（180秒）
 
 function getAudioContext() {
@@ -182,7 +182,21 @@ function hasUnacceptedOrders() {
   return Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
 }
 
-// チャイム鳴動開始（未対応注文がある間、受付完了まで最大3分間鳴り続ける）
+// 安全装置①: 曲の終端に達したら即座に頭出しして再開（loop属性を無視するブラウザ対策）
+if (kitchenOrderAudio) {
+  kitchenOrderAudio.onended = () => {
+    if (hasUnacceptedOrders() && soundEnabled) {
+      if (chimeStartTime > 0 && Date.now() - chimeStartTime < MAX_CHIME_DURATION_MS) {
+        kitchenOrderAudio.currentTime = 0;
+        kitchenOrderAudio.play().catch(() => {});
+      } else {
+        stopChimeLoop();
+      }
+    }
+  };
+}
+
+// チャイム鳴動開始（未対応注文がある間、受付完了または最大3分間絶対に途切れず鳴らし続ける）
 function playChimeLoop(isNewOrder = false) {
   if (!soundEnabled || !hasUnacceptedOrders()) {
     stopChimeLoop();
@@ -200,57 +214,63 @@ function playChimeLoop(isNewOrder = false) {
     return;
   }
 
-  // 1. ネイティブオーディオ要素での再生（ループ再生）
+  // 1. ネイティブオーディオ再生
   if (kitchenOrderAudio) {
     kitchenOrderAudio.loop = true;
     kitchenOrderAudio.volume = 1.0;
-    const playPromise = kitchenOrderAudio.play();
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        audioUnlocked = true;
-        checkAudioStatus();
-      }).catch(err => {
-        console.warn('Native audio play error, trying fallback:', err);
-        audioUnlocked = false;
-        checkAudioStatus();
-        startFallbackLoop();
-      });
+    if (kitchenOrderAudio.paused) {
+      const playPromise = kitchenOrderAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          audioUnlocked = true;
+          checkAudioStatus();
+        }).catch(err => {
+          console.warn('Native audio play error, trying fallback:', err);
+          audioUnlocked = false;
+          checkAudioStatus();
+          playFallbackWebAudio();
+        });
+      }
     }
-  } else {
-    startFallbackLoop();
+  }
+
+  // 安全装置②: 1秒ごとの再生監視ウォッチドッグ（未対応があるのに途中で停止していたら即時強制再開！）
+  if (!watchdogTimer) {
+    watchdogTimer = setInterval(() => {
+      if (!soundEnabled || !hasUnacceptedOrders()) {
+        stopChimeLoop();
+        return;
+      }
+
+      // 3分判定
+      if (chimeStartTime > 0 && Date.now() - chimeStartTime >= MAX_CHIME_DURATION_MS) {
+        stopChimeLoop();
+        return;
+      }
+
+      // ブラウザが勝手にpauseしていたら即時再開
+      if (kitchenOrderAudio && kitchenOrderAudio.paused) {
+        kitchenOrderAudio.play().catch(() => {
+          playFallbackWebAudio();
+        });
+      }
+    }, 1000);
   }
 }
 
 // チャイム完全停止（受付ボタン押下時、または3分経過時、または未対応0件時）
 function stopChimeLoop() {
   chimeStartTime = 0;
+  if (watchdogTimer) {
+    clearInterval(watchdogTimer);
+    watchdogTimer = null;
+  }
   if (kitchenOrderAudio) {
     try {
       kitchenOrderAudio.pause();
       kitchenOrderAudio.currentTime = 0;
     } catch (e) {}
   }
-  if (fallbackIntervalTimer) {
-    clearInterval(fallbackIntervalTimer);
-    fallbackIntervalTimer = null;
-  }
-}
-
-// フォールバック定期鳴動ループ（Web Audio API）
-function startFallbackLoop() {
-  if (fallbackIntervalTimer) return;
-  playFallbackWebAudio();
-  fallbackIntervalTimer = setInterval(() => {
-    if (!soundEnabled || !hasUnacceptedOrders()) {
-      stopChimeLoop();
-      return;
-    }
-    if (chimeStartTime > 0 && Date.now() - chimeStartTime >= MAX_CHIME_DURATION_MS) {
-      stopChimeLoop();
-      return;
-    }
-    playFallbackWebAudio();
-  }, 2600);
 }
 
 // ユーザー操作による自動再生ブロック解除（画面タップ・クリック時）
@@ -269,7 +289,6 @@ function unlockAudio() {
   if (hasUnacceptedOrders() && soundEnabled) {
     playChimeLoop();
   } else if (kitchenOrderAudio) {
-    // 未対応がない場合は、ブラウザに再生許可を認識させるため無音で一度play
     try {
       kitchenOrderAudio.volume = 0.01;
       const p = kitchenOrderAudio.play();
