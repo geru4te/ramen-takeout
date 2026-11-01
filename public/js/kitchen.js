@@ -157,7 +157,9 @@ let storeStatus = {
   isLimitReached: false
 };
 
-// Web Audio API での着信チャイム音・操作音
+// 着信チャイム音管理（ネイティブオーディオ + Web Audio API のデュアル構成）
+const kitchenOrderAudio = document.getElementById('kitchen-order-audio');
+let audioUnlocked = false;
 let audioCtx = null;
 let soundEnabled = true;
 
@@ -171,53 +173,65 @@ function getAudioContext() {
   return audioCtx;
 }
 
-// ブラウザの音声自動再生ブロックをアンロック
-async function unlockAudio() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  if (ctx.state === 'suspended') {
-    try {
-      await ctx.resume();
-    } catch (err) {
-      console.warn('Audio resume error:', err);
+// ブラウザの音声自動再生ブロックを即座にアンロック
+function unlockAudio() {
+  if (!audioUnlocked && kitchenOrderAudio) {
+    kitchenOrderAudio.volume = 1.0;
+    const p = kitchenOrderAudio.play();
+    if (p !== undefined) {
+      p.then(() => {
+        kitchenOrderAudio.pause();
+        kitchenOrderAudio.currentTime = 0;
+        audioUnlocked = true;
+        checkAudioStatus();
+        updateNotificationLoop();
+      }).catch(() => {
+        audioUnlocked = false;
+        checkAudioStatus();
+      });
     }
   }
-  checkAudioStatus();
-  updateNotificationLoop();
+
+  try {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+  } catch (e) {}
 }
 
 function checkAudioStatus() {
-  const ctx = getAudioContext();
   if (!audioUnlockBanner) return;
   if (!soundEnabled) {
     audioUnlockBanner.style.display = 'none';
-  } else if (!ctx || ctx.state === 'suspended') {
+  } else if (!audioUnlocked) {
     audioUnlockBanner.style.display = 'block';
   } else {
     audioUnlockBanner.style.display = 'none';
   }
 }
 
-// 画面全体のタップ・キー操作でアンロック
+// 画面全体のタップ・キー操作で即座にアンロック
 ['click', 'touchstart', 'touchend', 'keydown'].forEach(evt => {
   window.addEventListener(evt, () => {
     unlockAudio();
   }, { passive: true });
 });
 
-// バナー自体のクリックでアンロック＆確認音
+// バナー自体のクリックでアンロック＆音確認
 if (audioUnlockBanner) {
-  audioUnlockBanner.addEventListener('click', async () => {
-    await unlockAudio();
-    playNotificationSound();
+  audioUnlockBanner.addEventListener('click', () => {
+    audioUnlocked = false;
+    unlockAudio();
+    if (btnSoundTest) btnSoundTest.click();
   });
 }
 
-// 未対応注文（RECEIVED）がある間、受付完了まで最大3分間繰り返し鳴らすループ制御
-let notificationLoopTimer = null;
-let isPlayingLoop = false;
-let loopStartTime = 0;
-const MAX_LOOP_DURATION_MS = 3 * 60 * 1000; // 最大3分間（180秒）
+// 未対応注文（RECEIVED）がある間、受付完了まで最大3分間鳴り続けるループ制御
+let chimeTimeoutTimer = null;
+let chimeStartTime = 0;
+const MAX_CHIME_DURATION_MS = 3 * 60 * 1000; // 最大3分間（180秒）
+let isChimePlaying = false;
 
 function hasUnacceptedOrders() {
   return Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
@@ -225,66 +239,83 @@ function hasUnacceptedOrders() {
 
 function updateNotificationLoop(isNewOrderArrived = false) {
   if (!soundEnabled) {
-    stopNotificationLoop();
+    stopNotificationSound();
     return;
   }
 
   if (hasUnacceptedOrders()) {
-    if (isNewOrderArrived) {
-      // 新規注文が届いた時は3分タイマーをリセット
-      loopStartTime = Date.now();
-    }
-    startNotificationLoop();
+    startNotificationSound(isNewOrderArrived);
   } else {
-    stopNotificationLoop();
+    stopNotificationSound();
   }
 }
 
-function startNotificationLoop() {
-  if (!hasUnacceptedOrders() || !soundEnabled) return;
-
-  if (!isPlayingLoop) {
-    isPlayingLoop = true;
-    loopStartTime = Date.now();
+function startNotificationSound(isNewOrderArrived = false) {
+  if (!soundEnabled) return;
+  if (!hasUnacceptedOrders()) {
+    stopNotificationSound();
+    return;
   }
 
-  if (notificationLoopTimer) return; // 既に鳴動中
+  if (isNewOrderArrived || chimeStartTime === 0) {
+    chimeStartTime = Date.now();
+  }
 
-  const runLoop = () => {
-    // 1. 受付完了（未対応注文が0件）になったか、音声OFFになったら即座に停止
-    if (!isPlayingLoop || !soundEnabled || !hasUnacceptedOrders()) {
-      stopNotificationLoop();
-      return;
+  // 3分経過チェック
+  if (Date.now() - chimeStartTime >= MAX_CHIME_DURATION_MS) {
+    console.log('未対応チャイムが最大3分に達したため自動停止しました');
+    stopNotificationSound();
+    return;
+  }
+
+  if (!isChimePlaying) {
+    isChimePlaying = true;
+    if (kitchenOrderAudio) {
+      kitchenOrderAudio.currentTime = 0;
+      kitchenOrderAudio.loop = true;
+      const p = kitchenOrderAudio.play();
+      if (p !== undefined) {
+        p.then(() => {
+          audioUnlocked = true;
+          checkAudioStatus();
+        }).catch(err => {
+          console.warn('Native audio play error, trying fallback:', err);
+          audioUnlocked = false;
+          checkAudioStatus();
+          playFallbackWebAudio();
+        });
+      }
+    } else {
+      playFallbackWebAudio();
     }
+  }
 
-    // 2. 鳴動開始から3分間（180秒）経過したら自動停止
-    const elapsed = Date.now() - loopStartTime;
-    if (elapsed >= MAX_LOOP_DURATION_MS) {
-      console.log('未対応チャイムが最大鳴動時間（3分間）に達したため自動停止しました');
-      stopNotificationLoop();
-      return;
-    }
-
-    playNotificationSound();
-
-    // 2.6秒おきに繰り返し鳴らす（受付完了または3分経過するまで継続）
-    notificationLoopTimer = setTimeout(runLoop, 2600);
-  };
-
-  runLoop();
+  // 最大3分後に自動停止するタイマーを設定
+  if (chimeTimeoutTimer) clearTimeout(chimeTimeoutTimer);
+  const remainingTime = Math.max(1000, MAX_CHIME_DURATION_MS - (Date.now() - chimeStartTime));
+  chimeTimeoutTimer = setTimeout(() => {
+    console.log('チャイムが最大3分に達したため停止しました');
+    stopNotificationSound();
+  }, remainingTime);
 }
 
-function stopNotificationLoop() {
-  isPlayingLoop = false;
-  loopStartTime = 0;
-  if (notificationLoopTimer) {
-    clearTimeout(notificationLoopTimer);
-    notificationLoopTimer = null;
+function stopNotificationSound() {
+  isChimePlaying = false;
+  chimeStartTime = 0;
+  if (chimeTimeoutTimer) {
+    clearTimeout(chimeTimeoutTimer);
+    chimeTimeoutTimer = null;
+  }
+  if (kitchenOrderAudio) {
+    try {
+      kitchenOrderAudio.pause();
+      kitchenOrderAudio.currentTime = 0;
+    } catch (e) {}
   }
 }
 
-// 新規注文受信チャイム（中音域で聞き取りやすく温かみのある2連アルペジオチャイム音）
-function playNotificationSound() {
+// フォールバック用 Web Audio API チャイム（中音域 523Hz〜1318Hz）
+function playFallbackWebAudio() {
   if (!soundEnabled) return;
   try {
     const ctx = getAudioContext();
@@ -293,11 +324,8 @@ function playNotificationSound() {
       ctx.resume().catch(() => {});
     }
 
-    // 中音域で聞き取りやすいベル音（主音 + 芯のある倍音）
     const playChimeNote = (freq, startOffset, dur = 0.35, vol = 0.50) => {
       const startTime = ctx.currentTime + startOffset;
-      
-      // 主音（クリアで太い正弦波）
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.type = 'sine';
@@ -310,7 +338,6 @@ function playNotificationSound() {
       osc1.start(startTime);
       osc1.stop(startTime + dur);
 
-      // 第2倍音（丸みのある三角波でスピーカーの抜けと存在感を向上）
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
       osc2.type = 'triangle';
@@ -324,19 +351,17 @@ function playNotificationSound() {
       osc2.stop(startTime + dur * 0.6);
     };
 
-    // フレーズ1: 落ち着いた中音域アルペジオ（ド4 → ミ4 → ソ4 → ド5: 523Hz〜1046Hz）
-    playChimeNote(523.25, 0.00, 0.22, 0.50); // C4 (ド)
-    playChimeNote(659.25, 0.10, 0.22, 0.50); // E4 (ミ)
-    playChimeNote(783.99, 0.20, 0.26, 0.52); // G4 (ソ)
-    playChimeNote(1046.50, 0.30, 0.55, 0.58); // C5 (ド)
+    playChimeNote(523.25, 0.00, 0.22, 0.50);
+    playChimeNote(659.25, 0.10, 0.22, 0.50);
+    playChimeNote(783.99, 0.20, 0.26, 0.52);
+    playChimeNote(1046.50, 0.30, 0.55, 0.58);
 
-    // フレーズ2: 明るく広がる中高音アルペジオ（ミ4 → ソ4 → ド5 → ミ5: 659Hz〜1318Hz）
-    playChimeNote(659.25, 0.65, 0.22, 0.50); // E4 (ミ)
-    playChimeNote(783.99, 0.75, 0.22, 0.52); // G4 (ソ)
-    playChimeNote(1046.50, 0.85, 0.26, 0.55); // C5 (ド)
-    playChimeNote(1318.51, 0.95, 0.65, 0.60); // E5 (ミ)
+    playChimeNote(659.25, 0.65, 0.22, 0.50);
+    playChimeNote(783.99, 0.75, 0.22, 0.52);
+    playChimeNote(1046.50, 0.85, 0.26, 0.55);
+    playChimeNote(1318.51, 0.95, 0.65, 0.60);
   } catch (err) {
-    console.error('Audio play error:', err);
+    console.error('Fallback audio error:', err);
   }
 }
 
@@ -357,15 +382,36 @@ btnSoundToggle.addEventListener('click', async () => {
 
 // 音テストボタン
 if (btnSoundTest) {
-  btnSoundTest.addEventListener('click', async () => {
-    await unlockAudio();
+  btnSoundTest.addEventListener('click', () => {
+    unlockAudio();
     if (!soundEnabled) {
       soundEnabled = true;
       btnSoundToggle.textContent = '音声: ON';
       btnSoundToggle.style.color = '#38bdf8';
     }
-    playNotificationSound();
-    checkAudioStatus();
+    // テスト再生（1回分約2.5秒を再生）
+    if (kitchenOrderAudio) {
+      kitchenOrderAudio.currentTime = 0;
+      kitchenOrderAudio.loop = false;
+      const p = kitchenOrderAudio.play();
+      if (p !== undefined) {
+        p.then(() => {
+          audioUnlocked = true;
+          checkAudioStatus();
+          setTimeout(() => {
+            // 未対応注文がなければテスト終了時に停止
+            if (!hasUnacceptedOrders()) {
+              kitchenOrderAudio.pause();
+              kitchenOrderAudio.currentTime = 0;
+            }
+          }, 2500);
+        }).catch(() => {
+          playFallbackWebAudio();
+        });
+      }
+    } else {
+      playFallbackWebAudio();
+    }
   });
 }
 
