@@ -163,6 +163,11 @@ let audioUnlocked = false;
 let audioCtx = null;
 let soundEnabled = true;
 
+// チャイム鳴動管理
+let chimeStartTime = 0;
+let fallbackIntervalTimer = null;
+const MAX_CHIME_DURATION_MS = 3 * 60 * 1000; // 最大3分間（180秒）
+
 function getAudioContext() {
   if (!audioCtx) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -173,24 +178,85 @@ function getAudioContext() {
   return audioCtx;
 }
 
-// ブラウザの音声自動再生ブロックを即座にアンロック
-function unlockAudio() {
-  if (!audioUnlocked && kitchenOrderAudio) {
+function hasUnacceptedOrders() {
+  return Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
+}
+
+// チャイム鳴動開始（未対応注文がある間、受付完了まで最大3分間鳴り続ける）
+function playChimeLoop(isNewOrder = false) {
+  if (!soundEnabled || !hasUnacceptedOrders()) {
+    stopChimeLoop();
+    return;
+  }
+
+  if (isNewOrder || chimeStartTime === 0) {
+    chimeStartTime = Date.now();
+  }
+
+  // 3分経過チェック
+  if (Date.now() - chimeStartTime >= MAX_CHIME_DURATION_MS) {
+    console.log('未対応チャイムが最大3分に達したため自動停止しました');
+    stopChimeLoop();
+    return;
+  }
+
+  // 1. ネイティブオーディオ要素での再生（ループ再生）
+  if (kitchenOrderAudio) {
+    kitchenOrderAudio.loop = true;
     kitchenOrderAudio.volume = 1.0;
-    const p = kitchenOrderAudio.play();
-    if (p !== undefined) {
-      p.then(() => {
-        kitchenOrderAudio.pause();
-        kitchenOrderAudio.currentTime = 0;
+    const playPromise = kitchenOrderAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
         audioUnlocked = true;
         checkAudioStatus();
-        updateNotificationLoop();
-      }).catch(() => {
+      }).catch(err => {
+        console.warn('Native audio play error, trying fallback:', err);
         audioUnlocked = false;
         checkAudioStatus();
+        startFallbackLoop();
       });
     }
+  } else {
+    startFallbackLoop();
   }
+}
+
+// チャイム完全停止（受付ボタン押下時、または3分経過時、または未対応0件時）
+function stopChimeLoop() {
+  chimeStartTime = 0;
+  if (kitchenOrderAudio) {
+    try {
+      kitchenOrderAudio.pause();
+      kitchenOrderAudio.currentTime = 0;
+    } catch (e) {}
+  }
+  if (fallbackIntervalTimer) {
+    clearInterval(fallbackIntervalTimer);
+    fallbackIntervalTimer = null;
+  }
+}
+
+// フォールバック定期鳴動ループ（Web Audio API）
+function startFallbackLoop() {
+  if (fallbackIntervalTimer) return;
+  playFallbackWebAudio();
+  fallbackIntervalTimer = setInterval(() => {
+    if (!soundEnabled || !hasUnacceptedOrders()) {
+      stopChimeLoop();
+      return;
+    }
+    if (chimeStartTime > 0 && Date.now() - chimeStartTime >= MAX_CHIME_DURATION_MS) {
+      stopChimeLoop();
+      return;
+    }
+    playFallbackWebAudio();
+  }, 2600);
+}
+
+// ユーザー操作による自動再生ブロック解除（画面タップ・クリック時）
+function unlockAudio() {
+  audioUnlocked = true;
+  checkAudioStatus();
 
   try {
     const ctx = getAudioContext();
@@ -198,6 +264,24 @@ function unlockAudio() {
       ctx.resume().catch(() => {});
     }
   } catch (e) {}
+
+  // 未対応注文があれば、このタップをトリガーにして即座にチャイムを本格再生開始！
+  if (hasUnacceptedOrders() && soundEnabled) {
+    playChimeLoop();
+  } else if (kitchenOrderAudio) {
+    // 未対応がない場合は、ブラウザに再生許可を認識させるため無音で一度play
+    try {
+      kitchenOrderAudio.volume = 0.01;
+      const p = kitchenOrderAudio.play();
+      if (p !== undefined) {
+        p.then(() => {
+          kitchenOrderAudio.pause();
+          kitchenOrderAudio.currentTime = 0;
+          kitchenOrderAudio.volume = 1.0;
+        }).catch(() => {});
+      }
+    } catch (e) {}
+  }
 }
 
 function checkAudioStatus() {
@@ -221,96 +305,21 @@ function checkAudioStatus() {
 // バナー自体のクリックでアンロック＆音確認
 if (audioUnlockBanner) {
   audioUnlockBanner.addEventListener('click', () => {
-    audioUnlocked = false;
     unlockAudio();
     if (btnSoundTest) btnSoundTest.click();
   });
 }
 
-// 未対応注文（RECEIVED）がある間、受付完了まで最大3分間鳴り続けるループ制御
-let chimeTimeoutTimer = null;
-let chimeStartTime = 0;
-const MAX_CHIME_DURATION_MS = 3 * 60 * 1000; // 最大3分間（180秒）
-let isChimePlaying = false;
-
-function hasUnacceptedOrders() {
-  return Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
-}
-
 function updateNotificationLoop(isNewOrderArrived = false) {
   if (!soundEnabled) {
-    stopNotificationSound();
+    stopChimeLoop();
     return;
   }
 
   if (hasUnacceptedOrders()) {
-    startNotificationSound(isNewOrderArrived);
+    playChimeLoop(isNewOrderArrived);
   } else {
-    stopNotificationSound();
-  }
-}
-
-function startNotificationSound(isNewOrderArrived = false) {
-  if (!soundEnabled) return;
-  if (!hasUnacceptedOrders()) {
-    stopNotificationSound();
-    return;
-  }
-
-  if (isNewOrderArrived || chimeStartTime === 0) {
-    chimeStartTime = Date.now();
-  }
-
-  // 3分経過チェック
-  if (Date.now() - chimeStartTime >= MAX_CHIME_DURATION_MS) {
-    console.log('未対応チャイムが最大3分に達したため自動停止しました');
-    stopNotificationSound();
-    return;
-  }
-
-  if (!isChimePlaying) {
-    isChimePlaying = true;
-    if (kitchenOrderAudio) {
-      kitchenOrderAudio.currentTime = 0;
-      kitchenOrderAudio.loop = true;
-      const p = kitchenOrderAudio.play();
-      if (p !== undefined) {
-        p.then(() => {
-          audioUnlocked = true;
-          checkAudioStatus();
-        }).catch(err => {
-          console.warn('Native audio play error, trying fallback:', err);
-          audioUnlocked = false;
-          checkAudioStatus();
-          playFallbackWebAudio();
-        });
-      }
-    } else {
-      playFallbackWebAudio();
-    }
-  }
-
-  // 最大3分後に自動停止するタイマーを設定
-  if (chimeTimeoutTimer) clearTimeout(chimeTimeoutTimer);
-  const remainingTime = Math.max(1000, MAX_CHIME_DURATION_MS - (Date.now() - chimeStartTime));
-  chimeTimeoutTimer = setTimeout(() => {
-    console.log('チャイムが最大3分に達したため停止しました');
-    stopNotificationSound();
-  }, remainingTime);
-}
-
-function stopNotificationSound() {
-  isChimePlaying = false;
-  chimeStartTime = 0;
-  if (chimeTimeoutTimer) {
-    clearTimeout(chimeTimeoutTimer);
-    chimeTimeoutTimer = null;
-  }
-  if (kitchenOrderAudio) {
-    try {
-      kitchenOrderAudio.pause();
-      kitchenOrderAudio.currentTime = 0;
-    } catch (e) {}
+    stopChimeLoop();
   }
 }
 
