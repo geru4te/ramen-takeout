@@ -1,1 +1,64 @@
-[]
+[
+  {
+    "id": "ord_1793538417863_7tu1",
+    "orderNumber": "8XT",
+    "items": [
+      {
+        "cartUid": "1793538413044_2837",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "ニンニク",
+          "アブラ"
+        ],
+        "paidToppings": [],
+        "itemTotal": 850
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      }
+    ],
+    "totalAmount": 850,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "RECEIVED",
+    "createdAt": "2026-11-01T13:06:57.863Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 1,
+      "monthlyCount": 1,
+      "totalBowlCount": 1,
+      "monthlyBowlCount": 1,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    }
+  }
+]
