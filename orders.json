@@ -1,5 +1,54 @@
 [
   {
+    "id": "ord_1793540979621_8c5g",
+    "orderNumber": "C39",
+    "items": [
+      {
+        "cartUid": "1793540944106_rxbo",
+        "id": "r3",
+        "name": "ラーメン",
+        "category": "ラーメン",
+        "price": 800,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ラーメン券",
+            "price": 800
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 800
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ラーメン券",
+        "price": 800,
+        "quantity": 1,
+        "subtotal": 800
+      }
+    ],
+    "totalAmount": 800,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "RECEIVED",
+    "createdAt": "2026-11-01T13:49:39.620Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 6,
+      "monthlyCount": 6,
+      "totalBowlCount": 6,
+      "monthlyBowlCount": 6,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    }
+  },
+  {
     "id": "ord_1793540613288_jbzg",
     "orderNumber": "59R",
     "items": [
