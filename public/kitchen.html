@@ -52,6 +52,13 @@
     .pin-shake {
       animation: pinShake 0.35s ease;
     }
+    @keyframes pulseBanner {
+      0%, 100% { background-color: #dc2626; }
+      50% { background-color: #ef4444; }
+    }
+    .banner-pulse {
+      animation: pulseBanner 1.8s infinite;
+    }
   </style>
 </head>
 <body class="kitchen-body">
@@ -104,7 +111,7 @@
   <audio id="kitchen-order-audio" preload="auto" src="/audio/order_chime.wav?v=2"></audio>
 
   <!-- 音声有効化案内バナー（ブラウザの自動再生ブロック解除用） -->
-  <div id="audio-unlock-banner" style="display: none; background: #dc2626; color: #ffffff; padding: 14px 16px; font-weight: 800; font-size: 1.05rem; text-align: center; cursor: pointer; border-bottom: 3px solid #b91c1c; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.5); letter-spacing: 0.05em;">
+  <div id="audio-unlock-banner" class="banner-pulse" style="display: none; background: #dc2626; color: #ffffff; padding: 14px 16px; font-weight: 800; font-size: 1.05rem; text-align: center; cursor: pointer; border-bottom: 3px solid #b91c1c; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.5); letter-spacing: 0.05em;">
     【重要】ブラウザの制限で音声が制限されています。画面のどこかをタップして注文受付音（チャイム）を有効化してください
   </div>
 
@@ -204,6 +211,6 @@
     <!-- 動的生成される注文カード -->
   </main>
 
-  <script src="/js/kitchen.js?v=57"></script>
+  <script src="/js/kitchen.js?v=59"></script>
 </body>
 </html>

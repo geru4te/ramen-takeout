@@ -28,6 +28,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// favicon 404 防止
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 // ブラウザによる古いJSキャッシュを防止し、常に最新の画面を表示
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -1029,11 +1032,11 @@ io.on('connection', (socket) => {
 
 server.listen(PORT, '0.0.0.0', async () => {
   console.log(`===============================================`);
-  console.log(`🍜 ラーメン店 テイクアウト注文システム 起動中`);
-  console.log(`📱 お客様用画面 (PC自身)   : http://localhost:${PORT}/`);
-  console.log(`📱 お客様用画面 (同一Wi-Fi): http://192.168.1.57:${PORT}/`);
-  console.log(`📟 厨房モニター (PC自身)   : http://localhost:${PORT}/kitchen.html`);
-  console.log(`📟 厨房モニター (同一Wi-Fi): http://192.168.1.57:${PORT}/kitchen.html`);
+  console.log(`ラーメン店 テイクアウト注文システム 起動中`);
+  console.log(`お客様用画面 (PC自身)   : http://localhost:${PORT}/`);
+  console.log(`お客様用画面 (同一Wi-Fi): http://192.168.1.57:${PORT}/`);
+  console.log(`厨房モニター (PC自身)   : http://localhost:${PORT}/kitchen.html`);
+  console.log(`厨房モニター (同一Wi-Fi): http://192.168.1.57:${PORT}/kitchen.html`);
   console.log(`===============================================`);
 
   // サーバー起動時にGitHubの data-storage ブランチから最新の注文履歴を自動復元
