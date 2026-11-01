@@ -213,8 +213,13 @@ if (audioUnlockBanner) {
   });
 }
 
-// 未対応注文（RECEIVED）がある間、一定間隔で繰り返し鳴らすループタイマー
+// 未対応注文（RECEIVED）がある間、受付完了まで繰り返し鳴らすループタイマー
 let notificationLoopTimer = null;
+let isPlayingLoop = false;
+
+function hasUnacceptedOrders() {
+  return Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
+}
 
 function updateNotificationLoop() {
   if (!soundEnabled) {
@@ -222,10 +227,7 @@ function updateNotificationLoop() {
     return;
   }
 
-  // 未対応（RECEIVED）の注文が存在するか確認
-  const hasUnaccepted = Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
-
-  if (hasUnaccepted) {
+  if (hasUnacceptedOrders()) {
     startNotificationLoop();
   } else {
     stopNotificationLoop();
@@ -233,30 +235,35 @@ function updateNotificationLoop() {
 }
 
 function startNotificationLoop() {
-  if (notificationLoopTimer) return; // 既に鳴動中
+  if (isPlayingLoop) return; // 既に鳴動中
+  if (!hasUnacceptedOrders() || !soundEnabled) return;
 
-  // 初回を即座に再生
-  playNotificationSound();
+  isPlayingLoop = true;
 
-  // 3.5秒おきに未対応注文がある限り繰り返し鳴らし続ける
-  notificationLoopTimer = setInterval(() => {
-    const hasUnaccepted = Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
-    if (!hasUnaccepted || !soundEnabled) {
+  const runLoop = () => {
+    if (!isPlayingLoop || !soundEnabled || !hasUnacceptedOrders()) {
       stopNotificationLoop();
       return;
     }
+
     playNotificationSound();
-  }, 3500);
+
+    // 2.5秒おきに未対応注文がある限り繰り返し鳴らし続ける（受付完了するまで停止しない）
+    notificationLoopTimer = setTimeout(runLoop, 2500);
+  };
+
+  runLoop();
 }
 
 function stopNotificationLoop() {
+  isPlayingLoop = false;
   if (notificationLoopTimer) {
-    clearInterval(notificationLoopTimer);
+    clearTimeout(notificationLoopTimer);
     notificationLoopTimer = null;
   }
 }
 
-// 新規注文受信チャイム（店舗向け2連ピンポーン音）
+// 新規注文受信チャイム（軽快で抜けの良い2連アルペジオチャイム音）
 function playNotificationSound() {
   if (!soundEnabled) return;
   try {
@@ -266,26 +273,48 @@ function playNotificationSound() {
       ctx.resume().catch(() => {});
     }
 
-    const playChimeNote = (freq, startOffset, dur = 0.5, vol = 0.45) => {
+    // 軽快で透明感のあるベル音（主音 + 抜けの良い倍音）
+    const playLightChimeNote = (freq, startOffset, dur = 0.28, vol = 0.42) => {
       const startTime = ctx.currentTime + startOffset;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, startTime);
-      gain.gain.setValueAtTime(vol, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(startTime);
-      osc.stop(startTime + dur);
+      
+      // 主音（クリアな正弦波）
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(freq, startTime);
+      gain1.gain.setValueAtTime(0.001, startTime);
+      gain1.gain.exponentialRampToValueAtTime(vol, startTime + 0.008);
+      gain1.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(startTime);
+      osc1.stop(startTime + dur);
+
+      // 倍音（煌びやかなベル風のディケイ）
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(freq * 2, startTime);
+      gain2.gain.setValueAtTime(0.001, startTime);
+      gain2.gain.exponentialRampToValueAtTime(vol * 0.25, startTime + 0.005);
+      gain2.gain.exponentialRampToValueAtTime(0.001, startTime + dur * 0.5);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(startTime);
+      osc2.stop(startTime + dur * 0.5);
     };
 
-    // 1回目 ピンポーン（ソ4: 784Hz → ミ4: 659Hz）
-    playChimeNote(783.99, 0.0, 0.45, 0.45);
-    playChimeNote(659.25, 0.22, 0.65, 0.45);
-    // 2回目 ピンポーン
-    playChimeNote(783.99, 0.85, 0.45, 0.45);
-    playChimeNote(659.25, 1.07, 0.85, 0.45);
+    // フレーズ1: 軽快な上昇アルペジオ（ド5 → ミ5 → ソ5 → ド6）
+    playLightChimeNote(1046.50, 0.00, 0.18, 0.45); // C5
+    playLightChimeNote(1318.51, 0.08, 0.18, 0.45); // E5
+    playLightChimeNote(1567.98, 0.16, 0.20, 0.48); // G5
+    playLightChimeNote(2093.00, 0.24, 0.45, 0.55); // C6
+
+    // フレーズ2: 明るい高音アルペジオ（ミ5 → ソ5 → ド6 → ミ6）
+    playLightChimeNote(1318.51, 0.48, 0.18, 0.45); // E5
+    playLightChimeNote(1567.98, 0.56, 0.18, 0.48); // G5
+    playLightChimeNote(2093.00, 0.64, 0.22, 0.52); // C6
+    playLightChimeNote(2637.02, 0.72, 0.50, 0.58); // E6
   } catch (err) {
     console.error('Audio play error:', err);
   }
@@ -1084,9 +1113,27 @@ function updateLocalOrder(updated) {
   renderOrders();
 }
 
+// 画面の表示復帰時（スリープ解除やタブ切り替え）にも未対応注文があれば即座に音声再開
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    unlockAudio();
+    updateNotificationLoop();
+  }
+});
+window.addEventListener('focus', () => {
+  unlockAudio();
+  updateNotificationLoop();
+});
+
 socket.on('order:created', (newOrder) => {
-  orders.push(newOrder);
+  // 重複防止
+  const exists = orders.some(o => o.id === newOrder.id);
+  if (!exists) {
+    orders.push(newOrder);
+  }
   renderOrders();
+  unlockAudio();
+  updateNotificationLoop();
 });
 
 socket.on('order:updated', (updatedOrder) => {
