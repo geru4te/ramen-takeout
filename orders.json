@@ -31,7 +31,7 @@
     "memo": "",
     "lineUserId": null,
     "lineUserName": null,
-    "status": "READY",
+    "status": "COMPLETED",
     "createdAt": "2026-11-01T14:36:54.392Z",
     "targetTimestamp": 1793544419459,
     "estimatedMinutes": 10,
