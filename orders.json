@@ -53,11 +53,11 @@
     "memo": "",
     "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
     "lineUserName": "terushige uchida",
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-01T13:40:49.779Z",
     "targetTimestamp": 1793541108095,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-01T13:41:49.026Z",
     "userOrderStats": {
       "totalCount": 4,
       "monthlyCount": 4,
