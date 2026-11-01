@@ -53,10 +53,10 @@
     "memo": "",
     "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
     "lineUserName": "terushige uchida",
-    "status": "RECEIVED",
+    "status": "COOKING",
     "createdAt": "2026-11-01T13:40:49.779Z",
-    "targetTimestamp": null,
-    "estimatedMinutes": null,
+    "targetTimestamp": 1793541108095,
+    "estimatedMinutes": 10,
     "readyAt": null,
     "userOrderStats": {
       "totalCount": 4,
@@ -65,7 +65,8 @@
       "monthlyBowlCount": 4,
       "isContainerFree": true,
       "savedContainerFee": 100
-    }
+    },
+    "estimatedTime": "22:51"
   },
   {
     "id": "ord_1793540375363_bbiu",
