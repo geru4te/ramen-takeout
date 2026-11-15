@@ -1,5 +1,202 @@
 [
   {
+    "id": "ord_1794724698731_8ncj",
+    "orderNumber": "9B9",
+    "items": [
+      {
+        "id": "ramen-regular",
+        "name": "ラーメン (並)",
+        "price": 950,
+        "quantity": 1,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "itemTotal": 1050
+      }
+    ],
+    "tickets": [
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      }
+    ],
+    "totalAmount": 1050,
+    "note": "",
+    "memo": "",
+    "lineUserId": null,
+    "lineUserName": null,
+    "status": "COOKING",
+    "createdAt": "2026-11-15T06:38:18.731Z",
+    "targetTimestamp": 1794725303916,
+    "estimatedMinutes": 10,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 1,
+      "monthlyCount": 1,
+      "totalBowlCount": 1,
+      "monthlyBowlCount": 1,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    },
+    "estimatedTime": "15:48"
+  },
+  {
+    "id": "ord_1794724287382_r3z5",
+    "orderNumber": "2CX",
+    "items": [
+      {
+        "cartUid": "1794724282893_814d",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 750
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      }
+    ],
+    "totalAmount": 750,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "COOKING",
+    "createdAt": "2026-11-15T06:31:27.382Z",
+    "targetTimestamp": 1794725303768,
+    "estimatedMinutes": 10,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 14,
+      "monthlyCount": 14,
+      "totalBowlCount": 14,
+      "monthlyBowlCount": 14,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    },
+    "estimatedTime": "15:48"
+  },
+  {
+    "id": "ord_1794724248645_rynm",
+    "orderNumber": "A38",
+    "items": [
+      {
+        "cartUid": "1794724244149_m06g",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 750
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      }
+    ],
+    "totalAmount": 750,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-15T06:30:48.645Z",
+    "targetTimestamp": 1794724864817,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-15T06:31:06.926Z",
+    "userOrderStats": {
+      "totalCount": 13,
+      "monthlyCount": 13,
+      "totalBowlCount": 13,
+      "monthlyBowlCount": 13,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    },
+    "estimatedTime": "15:41"
+  },
+  {
+    "id": "ord_1793544112901_8c4i",
+    "orderNumber": "RP3",
+    "items": [
+      {
+        "cartUid": "1793544109549_vbm8",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 750
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      }
+    ],
+    "totalAmount": 750,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-01T14:41:52.901Z",
+    "targetTimestamp": 1794724863337,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-15T06:31:05.712Z",
+    "userOrderStats": {
+      "totalCount": 12,
+      "monthlyCount": 12,
+      "totalBowlCount": 12,
+      "monthlyBowlCount": 12,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    },
+    "estimatedTime": "15:41"
+  },
+  {
     "id": "ord_1793543814392_99jj",
     "orderNumber": "B3D",
     "items": [
@@ -31,11 +228,11 @@
     "memo": "",
     "lineUserId": null,
     "lineUserName": null,
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-01T14:36:54.392Z",
     "targetTimestamp": 1793544419459,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-01T14:41:07.832Z",
     "userOrderStats": {
       "totalCount": 1,
       "monthlyCount": 1,
@@ -78,11 +275,11 @@
     "memo": "",
     "lineUserId": null,
     "lineUserName": null,
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-01T14:35:49.490Z",
     "targetTimestamp": 1793544354545,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-01T14:41:07.170Z",
     "userOrderStats": {
       "totalCount": 1,
       "monthlyCount": 1,
@@ -125,11 +322,11 @@
     "memo": "",
     "lineUserId": null,
     "lineUserName": null,
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-01T14:35:20.660Z",
     "targetTimestamp": 1793544325876,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-01T14:41:06.344Z",
     "userOrderStats": {
       "totalCount": 1,
       "monthlyCount": 1,
@@ -172,11 +369,11 @@
     "memo": "",
     "lineUserId": null,
     "lineUserName": null,
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-01T14:34:36.638Z",
     "targetTimestamp": 1793544325730,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-01T14:41:05.324Z",
     "userOrderStats": {
       "totalCount": 1,
       "monthlyCount": 1,
@@ -219,11 +416,11 @@
     "memo": "",
     "lineUserId": null,
     "lineUserName": null,
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-01T14:33:40.729Z",
     "targetTimestamp": 1793544325858,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-01T14:41:03.759Z",
     "userOrderStats": {
       "totalCount": 1,
       "monthlyCount": 1,
@@ -269,11 +466,11 @@
     "memo": "",
     "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
     "lineUserName": "terushige uchida",
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-01T14:24:10.235Z",
     "targetTimestamp": 1793544281800,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-01T14:41:01.981Z",
     "userOrderStats": {
       "totalCount": 11,
       "monthlyCount": 11,

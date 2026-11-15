@@ -158,10 +158,12 @@ let storeStatus = {
   isLimitReached: false
 };
 
-// 着信チャイム音管理（Web Audio API 高信頼発振 ＋ ネイティブオーディオ併用）
+// 着信チャイム音管理（Web Audio API 高信頼発振 ＋ 無音キープアライブ ＋ ネイティブオーディオ併用）
 const kitchenOrderAudio = document.getElementById('kitchen-order-audio');
 let audioUnlocked = false;
 let audioCtx = null;
+let keepAliveOsc = null;
+let keepAliveGain = null;
 let soundEnabled = true;
 
 // チャイム鳴動管理（未対応注文がある間、受付完了または最大3分間鳴り続ける）
@@ -180,6 +182,40 @@ function getAudioContext() {
   return audioCtx;
 }
 
+// ブラウザによる AudioContext の自動サスペンド（放置時の休止化）を防止する無音キープアライブ
+function ensureAudioRunning() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  if (ctx.state === 'suspended') {
+    ctx.resume().then(() => {
+      audioUnlocked = true;
+      checkAudioStatus();
+      setupKeepAlive(ctx);
+    }).catch(() => {});
+  } else if (ctx.state === 'running') {
+    audioUnlocked = true;
+    checkAudioStatus();
+    setupKeepAlive(ctx);
+  }
+}
+
+function setupKeepAlive(ctx) {
+  if (keepAliveOsc || !ctx || ctx.state !== 'running') return;
+  try {
+    keepAliveGain = ctx.createGain();
+    keepAliveGain.gain.setValueAtTime(0.00001, ctx.currentTime); // 人間の耳には聞こえない極小音量
+    keepAliveGain.connect(ctx.destination);
+
+    keepAliveOsc = ctx.createOscillator();
+    keepAliveOsc.frequency.setValueAtTime(440, ctx.currentTime);
+    keepAliveOsc.connect(keepAliveGain);
+    keepAliveOsc.start();
+  } catch (e) {
+    console.warn('Audio keep-alive start failed:', e);
+  }
+}
+
 function hasUnacceptedOrders() {
   return Array.isArray(orders) && orders.some(o => o.status === 'RECEIVED');
 }
@@ -190,81 +226,88 @@ function playSynthChime() {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
+
+    const playNotes = () => {
+      const now = ctx.currentTime;
+      // 中音域（ド4・ミ4・ソ4・ド5）で耳に刺さらない軽快なメロディ（厨房でもはっきり聞こえる音量0.7）
+      const notes = [
+        { freq: 261.63, offset: 0.00, dur: 0.35, gain: 0.60 }, // C4 (ド)
+        { freq: 329.63, offset: 0.16, dur: 0.35, gain: 0.65 }, // E4 (ミ)
+        { freq: 392.00, offset: 0.32, dur: 0.40, gain: 0.70 }, // G4 (ソ)
+        { freq: 523.25, offset: 0.48, dur: 0.80, gain: 0.75 }  // C5 (高ド)
+      ];
+
+      notes.forEach(({ freq, offset, dur, gain: vol }) => {
+        const t0 = now + offset;
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+
+        gainNode.gain.setValueAtTime(0.001, t0);
+        gainNode.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+        gainNode.gain.linearRampToValueAtTime(0.001, t0 + dur);
+
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + dur);
+
+        // 軽快なベルの響き（オクターブ倍音）
+        const osc2 = ctx.createOscillator();
+        const gainNode2 = ctx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(freq * 2, t0);
+
+        gainNode2.gain.setValueAtTime(0.001, t0);
+        gainNode2.gain.linearRampToValueAtTime(vol * 0.25, t0 + 0.015);
+        gainNode2.gain.linearRampToValueAtTime(0.001, t0 + dur * 0.6);
+
+        osc2.connect(gainNode2);
+        gainNode2.connect(ctx.destination);
+        osc2.start(t0);
+        osc2.stop(t0 + dur * 0.6);
+      });
+    };
+
     if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
+      ctx.resume().then(playNotes).catch(() => {});
+    } else {
+      playNotes();
     }
-
-    const now = ctx.currentTime;
-    // 中音域（ド4・ミ4・ソ4・ド5）で耳に刺さらない軽快なメロディ
-    const notes = [
-      { freq: 261.63, offset: 0.00, dur: 0.35, gain: 0.40 }, // C4 (ド)
-      { freq: 329.63, offset: 0.16, dur: 0.35, gain: 0.45 }, // E4 (ミ)
-      { freq: 392.00, offset: 0.32, dur: 0.40, gain: 0.50 }, // G4 (ソ)
-      { freq: 523.25, offset: 0.48, dur: 0.75, gain: 0.55 }  // C5 (高ド)
-    ];
-
-    notes.forEach(({ freq, offset, dur, gain: vol }) => {
-      const t0 = now + offset;
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, t0);
-
-      gainNode.gain.setValueAtTime(0.001, t0);
-      gainNode.gain.linearRampToValueAtTime(vol, t0 + 0.02);
-      gainNode.gain.linearRampToValueAtTime(0.001, t0 + dur);
-
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      osc.start(t0);
-      osc.stop(t0 + dur);
-
-      // 軽快なベルの響き（オクターブ倍音）
-      const osc2 = ctx.createOscillator();
-      const gainNode2 = ctx.createGain();
-      osc2.type = 'triangle';
-      osc2.frequency.setValueAtTime(freq * 2, t0);
-
-      gainNode2.gain.setValueAtTime(0.001, t0);
-      gainNode2.gain.linearRampToValueAtTime(vol * 0.2, t0 + 0.015);
-      gainNode2.gain.linearRampToValueAtTime(0.001, t0 + dur * 0.6);
-
-      osc2.connect(gainNode2);
-      gainNode2.connect(ctx.destination);
-      osc2.start(t0);
-      osc2.stop(t0 + dur * 0.6);
-    });
   } catch (err) {
     console.warn('Web Audio synthesis error:', err);
   }
 }
 
-// 1フレーズ再生（WAVおよびシンセ）
+// 1フレーズ再生（シンセおよびWAV）
 function playChimePhrase() {
   if (!soundEnabled) return;
-  // 1. シンセチャイム
+
+  // 1. Web Audio API シンセチャイム（ネットワーク非依存で確実に鳴る）
   playSynthChime();
 
-  // 2. WAVファイル再生
+  // 2. ネイティブオーディオ（WAVファイル）の再生併用
   if (kitchenOrderAudio) {
     try {
       kitchenOrderAudio.currentTime = 0;
       kitchenOrderAudio.volume = 1.0;
       kitchenOrderAudio.play().catch(e => {
-        console.log('WAV audio play caught:', e.message);
+        // 自動再生制限でブロックされた場合はコンソールログのみ（Web Audioが鳴るので安全）
       });
     } catch (e) {}
   }
 }
 
 // チャイム鳴動開始（未対応注文がある間、受付完了または最大3分間鳴り続ける）
-function playChimeLoop(isNewOrder = false) {
+function startChimeLoop(forceReset = false) {
   if (!soundEnabled || !hasUnacceptedOrders()) {
     stopChimeLoop();
     return;
   }
 
-  if (isNewOrder || chimeStartTime === 0) {
+  // 新規注文、またはタイマー未開始なら開始時刻を現在にリセット
+  if (forceReset || chimeStartTime === 0) {
     chimeStartTime = Date.now();
   }
 
@@ -273,6 +316,12 @@ function playChimeLoop(isNewOrder = false) {
     console.log('未対応チャイムが最大3分に達したため自動停止しました');
     stopChimeLoop();
     return;
+  }
+
+  // 新規注文着信時は、既存のタイマーを即座にリセットして「今すぐ」1回目を鳴らす！
+  if (forceReset && chimeWatchdogTimer) {
+    clearInterval(chimeWatchdogTimer);
+    chimeWatchdogTimer = null;
   }
 
   // 初回即時発音
@@ -297,6 +346,11 @@ function playChimeLoop(isNewOrder = false) {
   }
 }
 
+// 互換性ラッパー
+function playChimeLoop(isNewOrder = false) {
+  startChimeLoop(isNewOrder);
+}
+
 // チャイム完全停止（受付ボタン押下時、または3分経過時、または未対応0件時）
 function stopChimeLoop() {
   chimeStartTime = 0;
@@ -314,36 +368,29 @@ function stopChimeLoop() {
 
 // ユーザー操作による自動再生ブロック解除（画面タップ・クリック時）
 function unlockAudio() {
-  if (!audioUnlocked) {
-    audioUnlocked = true;
-    checkAudioStatus();
-  }
-
-  try {
-    const ctx = getAudioContext();
-    if (ctx && ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-  } catch (e) {}
+  ensureAudioRunning();
 
   // 未対応注文があれば、即座にループ再生を開始
   if (hasUnacceptedOrders() && soundEnabled) {
-    playChimeLoop();
+    startChimeLoop(false);
   }
 }
 
 function checkAudioStatus() {
   if (!audioUnlockBanner) return;
+  const ctx = getAudioContext();
+  const isRunning = ctx && ctx.state === 'running';
+
   if (!soundEnabled) {
     audioUnlockBanner.style.display = 'none';
-  } else if (!audioUnlocked) {
+  } else if (!isRunning) {
     audioUnlockBanner.style.display = 'block';
   } else {
     audioUnlockBanner.style.display = 'none';
   }
 }
 
-// 画面全体のタップ・キー操作で即座にアンロック
+// 画面全体のタップ・キー操作で即座にアンロック＆キープアライブ起動
 ['click', 'touchstart', 'touchend', 'keydown'].forEach(evt => {
   window.addEventListener(evt, () => {
     unlockAudio();
@@ -365,7 +412,7 @@ function updateNotificationLoop(isNewOrderArrived = false) {
   }
 
   if (hasUnacceptedOrders()) {
-    playChimeLoop(isNewOrderArrived);
+    startChimeLoop(isNewOrderArrived);
   } else {
     stopChimeLoop();
   }
@@ -1183,8 +1230,8 @@ socket.on('order:created', (newOrder) => {
     orders.push(newOrder);
   }
   renderOrders();
-  unlockAudio();
-  updateNotificationLoop(true); // 新規注文が届いたので3分タイマーをリセットして鳴動開始
+  ensureAudioRunning();
+  startChimeLoop(true); // 新規注文が届いたのでタイマーをリセットし即座に初回発音！
 });
 
 socket.on('order:updated', (updatedOrder) => {
