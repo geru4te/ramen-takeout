@@ -1,52 +1,5 @@
 [
   {
-    "id": "ord_1794724698731_8ncj",
-    "orderNumber": "9B9",
-    "items": [
-      {
-        "id": "ramen-regular",
-        "name": "ラーメン (並)",
-        "price": 950,
-        "quantity": 1,
-        "containerFee": 100,
-        "requiredTickets": [
-          {
-            "name": "容器代券",
-            "price": 100
-          }
-        ],
-        "itemTotal": 1050
-      }
-    ],
-    "tickets": [
-      {
-        "name": "容器代券",
-        "price": 100,
-        "quantity": 2,
-        "subtotal": 200
-      }
-    ],
-    "totalAmount": 1050,
-    "note": "",
-    "memo": "",
-    "lineUserId": null,
-    "lineUserName": null,
-    "status": "COOKING",
-    "createdAt": "2026-11-15T06:38:18.731Z",
-    "targetTimestamp": 1794725303916,
-    "estimatedMinutes": 10,
-    "readyAt": null,
-    "userOrderStats": {
-      "totalCount": 1,
-      "monthlyCount": 1,
-      "totalBowlCount": 1,
-      "monthlyBowlCount": 1,
-      "isContainerFree": false,
-      "savedContainerFee": 0
-    },
-    "estimatedTime": "15:48"
-  },
-  {
     "id": "ord_1794724287382_r3z5",
     "orderNumber": "2CX",
     "items": [
@@ -83,7 +36,7 @@
     "lineUserName": "terushige uchida",
     "status": "COOKING",
     "createdAt": "2026-11-15T06:31:27.382Z",
-    "targetTimestamp": 1794725303768,
+    "targetTimestamp": 1794725312459,
     "estimatedMinutes": 10,
     "readyAt": null,
     "userOrderStats": {
