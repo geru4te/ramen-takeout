@@ -182,11 +182,11 @@
     "memo": "",
     "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
     "lineUserName": "森谷 勇樹",
-    "status": "COOKING",
+    "status": "READY",
     "createdAt": "2026-11-24T13:45:34.533Z",
     "targetTimestamp": 1795528553766,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-24T13:45:59.869Z",
     "userOrderStats": {
       "totalCount": 4,
       "monthlyCount": 4,
