@@ -1,5 +1,202 @@
 [
   {
+    "id": "ord_1795527934533_xrm3",
+    "orderNumber": "U2E",
+    "items": [
+      {
+        "cartUid": "1795527931870_4bp3",
+        "id": "r4",
+        "name": "ブタミニラーメン",
+        "category": "ラーメン",
+        "price": 900,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ブタミニラーメン券",
+            "price": 900
+          }
+        ],
+        "freeToppings": [
+          "ニンニク",
+          "アブラ"
+        ],
+        "paidToppings": [
+          {
+            "id": "t1",
+            "name": "生たまご",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生たまご券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t2",
+            "name": "ショウガ",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "ショウガ券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t3",
+            "name": "魚粉",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "魚粉券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t4",
+            "name": "生唐辛子",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生唐辛子券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t5",
+            "name": "玉ねぎ",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "玉ねぎ券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t6",
+            "name": "粉チーズ",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "粉チーズ券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t7",
+            "name": "うずら味たま（5個）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "うずら味たま券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t8",
+            "name": "のり（4枚）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "のり券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          }
+        ],
+        "itemTotal": 1450
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ブタミニラーメン券",
+        "price": 900,
+        "quantity": 1,
+        "subtotal": 900
+      },
+      {
+        "name": "生たまご券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "ショウガ券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "魚粉券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "生唐辛子券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "玉ねぎ券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "粉チーズ券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      },
+      {
+        "name": "うずら味たま券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      },
+      {
+        "name": "のり券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      }
+    ],
+    "totalAmount": 1450,
+    "note": "",
+    "memo": "",
+    "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
+    "lineUserName": "森谷 勇樹",
+    "status": "RECEIVED",
+    "createdAt": "2026-11-24T13:45:34.533Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 4,
+      "monthlyCount": 4,
+      "totalBowlCount": 4,
+      "monthlyBowlCount": 4,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    }
+  },
+  {
     "id": "ord_1795527894892_961x",
     "orderNumber": "92M",
     "items": [
