@@ -31,11 +31,11 @@
     "memo": "",
     "lineUserId": null,
     "lineUserName": null,
-    "status": "COOKING",
+    "status": "READY",
     "createdAt": "2026-11-24T14:42:48.721Z",
     "targetTimestamp": 1795531973781,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-24T14:47:14.022Z",
     "userOrderStats": {
       "totalCount": 1,
       "monthlyCount": 1,
