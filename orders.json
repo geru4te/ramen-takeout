@@ -1,5 +1,114 @@
 [
   {
+    "id": "ord_1795498179572_nxt5",
+    "orderNumber": "QL5",
+    "items": [
+      {
+        "cartUid": "1795498163809_jaaq",
+        "id": "j6",
+        "name": "汁なしブタラーメン",
+        "category": "汁なし",
+        "price": 1050,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ブタラーメン券",
+            "price": 950
+          },
+          {
+            "name": "汁なし券",
+            "price": 100
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "ニンニク",
+          "アブラ"
+        ],
+        "paidToppings": [
+          {
+            "id": "t4",
+            "name": "生唐辛子",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生唐辛子券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t7",
+            "name": "うずら味たま（5個）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "うずら味たま券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          }
+        ],
+        "itemTotal": 1300
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ブタラーメン券",
+        "price": 950,
+        "quantity": 1,
+        "subtotal": 950
+      },
+      {
+        "name": "汁なし券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      },
+      {
+        "name": "生唐辛子券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "うずら味たま券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      }
+    ],
+    "totalAmount": 1300,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U69406abb5ae8f031d38845eccfb1e975",
+    "lineUserName": "Ryu太郎",
+    "status": "RECEIVED",
+    "createdAt": "2026-11-24T05:29:39.572Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 1,
+      "monthlyCount": 1,
+      "totalBowlCount": 1,
+      "monthlyBowlCount": 1,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    }
+  },
+  {
     "id": "ord_1794725682142_xlvq",
     "orderNumber": "9S8",
     "items": [
