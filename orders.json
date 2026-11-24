@@ -130,10 +130,10 @@
     "memo": "",
     "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
     "lineUserName": "森谷 勇樹",
-    "status": "RECEIVED",
+    "status": "COOKING",
     "createdAt": "2026-11-24T13:44:54.892Z",
-    "targetTimestamp": null,
-    "estimatedMinutes": null,
+    "targetTimestamp": 1795527964016,
+    "estimatedMinutes": 1,
     "readyAt": null,
     "userOrderStats": {
       "totalCount": 3,
@@ -142,7 +142,8 @@
       "monthlyBowlCount": 3,
       "isContainerFree": false,
       "savedContainerFee": 0
-    }
+    },
+    "estimatedTime": "22:46"
   },
   {
     "id": "ord_1795527855678_1i7i",
