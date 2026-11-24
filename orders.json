@@ -94,10 +94,10 @@
     "memo": "",
     "lineUserId": "U69406abb5ae8f031d38845eccfb1e975",
     "lineUserName": "Ryu太郎",
-    "status": "RECEIVED",
+    "status": "COOKING",
     "createdAt": "2026-11-24T05:29:39.572Z",
-    "targetTimestamp": null,
-    "estimatedMinutes": null,
+    "targetTimestamp": 1795498797755,
+    "estimatedMinutes": 10,
     "readyAt": null,
     "userOrderStats": {
       "totalCount": 1,
@@ -106,7 +106,8 @@
       "monthlyBowlCount": 1,
       "isContainerFree": false,
       "savedContainerFee": 0
-    }
+    },
+    "estimatedTime": "14:39"
   },
   {
     "id": "ord_1794725682142_xlvq",
