@@ -4,44 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>【厨房タブレット】モバイルオーダー管理 (KDS)</title>
-  <link rel="stylesheet" href="/css/style.css?v=4">
+  <link rel="stylesheet" href="/css/style.css?v=5">
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    /* 管理者PIN認証ロック用スタイル */
+    /* 管理者PIN認証ロック用スタイル（明るく見やすいライトテーマ） */
     .pin-dot {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      border: 2px solid #64748b;
-      background: transparent;
+      border: 2px solid #94a3b8;
+      background: #f1f5f9;
       transition: all 0.15s ease;
     }
     .pin-dot.filled {
-      background: #38bdf8;
-      border-color: #38bdf8;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+      background: #0284c7;
+      border-color: #0284c7;
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.5);
       transform: scale(1.1);
     }
     .pin-key-btn {
-      background: #334155;
-      color: #fff;
-      border: 1px solid #475569;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
       border-radius: 12px;
       font-size: 1.4rem;
-      font-weight: 700;
+      font-weight: 800;
       padding: 14px 0;
       cursor: pointer;
       transition: all 0.1s;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
     }
     .pin-key-btn:active {
-      background: #475569;
+      background: #e2e8f0;
       transform: scale(0.95);
     }
     .pin-action-key {
-      background: #1e293b;
-      color: #94a3b8;
+      background: #f1f5f9;
+      color: #475569;
       font-size: 1.1rem;
     }
     @keyframes pinShake {
@@ -63,11 +64,11 @@
 </head>
 <body class="kitchen-body">
 
-  <!-- 管理者PIN認証ロック画面（未認証時は全画面をガード） -->
-  <div id="kitchen-auth-overlay" style="position: fixed; inset: 0; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
-    <div id="pin-card-box" style="background: #1e293b; border: 1px solid #334155; border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 360px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); text-align: center;">
-      <h2 style="color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 6px;">厨房モニター 管理者認証</h2>
-      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px;">管理者・スタッフ用の暗証番号を入力してください</p>
+  <!-- 管理者PIN認証ロック画面（明るいライト背景） -->
+  <div id="kitchen-auth-overlay" style="position: fixed; inset: 0; background: #f1f5f9; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+    <div id="pin-card-box" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 360px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08); text-align: center;">
+      <h2 style="color: #0f172a; font-size: 1.35rem; font-weight: 800; margin-bottom: 6px;">厨房モニター 管理者認証</h2>
+      <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 20px;">管理者・スタッフ用の暗証番号を入力してください</p>
 
       <!-- 暗証番号表示用ドット -->
       <div id="pin-display-dots" style="display: flex; justify-content: center; gap: 16px; margin-bottom: 16px;">
@@ -96,13 +97,13 @@
         <button type="button" class="pin-key-btn pin-action-key" onclick="backspacePin()">⌫</button>
       </div>
 
-      <label style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #94a3b8; font-size: 0.85rem; cursor: pointer; user-select: none;">
+      <label style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #475569; font-size: 0.85rem; cursor: pointer; user-select: none;">
         <input type="checkbox" id="chk-remember-auth" checked style="width: 16px; height: 16px; cursor: pointer;">
         この端末を記憶する（次回自動ログイン）
       </label>
       
-      <div style="margin-top: 20px; border-top: 1px solid #334155; padding-top: 14px;">
-        <a href="/" style="color: #64748b; font-size: 0.85rem; text-decoration: underline;">注文画面（お客様トップ）へ戻る</a>
+      <div style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+        <a href="/" style="color: #0284c7; font-size: 0.85rem; font-weight: 700; text-decoration: underline;">注文画面（お客様トップ）へ戻る</a>
       </div>
     </div>
   </div>
@@ -211,6 +212,6 @@
     <!-- 動的生成される注文カード -->
   </main>
 
-  <script src="/js/kitchen.js?v=60"></script>
+  <script src="/js/kitchen.js?v=61"></script>
 </body>
 </html>

@@ -980,10 +980,10 @@ function renderOrders() {
         </div>
 
         ${order.lineUserName ? `
-          <div style="background: #064e3b; border: 1px solid #059669; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
-              <span style="color: #6ee7b7; font-weight: 800;">LINE: ${order.lineUserName} 様</span>
-              <button onclick="blockOrder('${order.id}', '${order.lineUserName}')" style="background: #991b1b; color: #fecaca; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">
+          <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem;">
+              <span style="color: #047857; font-weight: 900;">LINE: ${order.lineUserName} 様</span>
+              <button onclick="blockOrder('${order.id}', '${order.lineUserName}')" style="background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">
                 いたずらブロック
               </button>
             </div>
@@ -994,10 +994,10 @@ function renderOrders() {
             ` : ''}
           </div>
         ` : `
-          <div style="background: #334155; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; color: #94a3b8;">
-              <span>一般注文</span>
-              <button onclick="blockOrder('${order.id}', 'ゲスト')" style="background: #475569; color: #cbd5e1; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: #64748b;">
+              <span style="font-weight: 700;">一般注文</span>
+              <button onclick="blockOrder('${order.id}', 'ゲスト')" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
                 注文破棄
               </button>
             </div>
@@ -1026,7 +1026,7 @@ function renderOrders() {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <span class="kds-quick-time-label" style="margin: 0;">目安時間の事前調整（標準10分後に完成）:</span>
               ${stagedMins !== 10 ? `
-                <button onclick="resetStagedMinutes('${order.id}')" style="background: none; border: none; color: #38bdf8; font-size: 0.75rem; text-decoration: underline; cursor: pointer;">
+                <button onclick="resetStagedMinutes('${order.id}')" style="background: none; border: none; color: #0284c7; font-size: 0.78rem; font-weight: 800; text-decoration: underline; cursor: pointer;">
                   10分に戻す
                 </button>
               ` : ''}
@@ -1039,7 +1039,7 @@ function renderOrders() {
               <button class="time-btn btn-add-time" onclick="stageEstimatedMinutes('${order.id}', 5)">＋５分</button>
             </div>
 
-            <div style="margin-top: 5px; font-size: 0.82rem; color: ${stagedMins !== 10 ? '#38bdf8' : '#94a3b8'}; text-align: center; font-weight: ${stagedMins !== 10 ? '700' : 'normal'};">
+            <div style="margin-top: 6px; font-size: 0.82rem; color: ${stagedMins !== 10 ? '#0284c7' : '#64748b'}; text-align: center; font-weight: ${stagedMins !== 10 ? '800' : 'bold'};">
               ${stagedMins !== 10 
                 ? `目安時間を「${stagedMins}分後に完成」に変更中（下のボタンで確定）` 
                 : '※下のボタンを押すと「10分後に完成」として調理開始します'}
@@ -1053,7 +1053,7 @@ function renderOrders() {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <span class="kds-quick-time-label" style="margin: 0;">目安時間の調整:</span>
               ${order.targetTimestamp ? `
-                <button onclick="resetEstimatedTime('${order.id}')" style="background: none; border: none; color: #94a3b8; font-size: 0.75rem; text-decoration: underline; cursor: pointer;">
+                <button onclick="resetEstimatedTime('${order.id}')" style="background: none; border: none; color: #0284c7; font-size: 0.78rem; font-weight: 800; text-decoration: underline; cursor: pointer;">
                   取消
                 </button>
               ` : ''}
@@ -1066,8 +1066,8 @@ function renderOrders() {
               <button class="time-btn btn-add-time" onclick="addEstimatedTime('${order.id}', 5)">＋５分</button>
             </div>
 
-            <div style="margin-top: 6px; font-size: 0.9rem; color: #38bdf8; font-weight: bold; text-align: center; background: #1e293b; padding: 6px; border-radius: 6px;">
-              お渡し目安: <span style="font-size: 1.15rem; color: #4ade80;">残り 約${remMins}分</span>
+            <div style="margin-top: 6px; font-size: 0.92rem; color: #0369a1; font-weight: 900; text-align: center; background: #e0f2fe; border: 1px solid #bae6fd; padding: 7px; border-radius: 6px;">
+              お渡し目安: <span style="font-size: 1.2rem; color: #15803d; font-weight: 900;">残り 約${remMins}分</span>
             </div>
           </div>
         ` : ''}
@@ -1076,7 +1076,7 @@ function renderOrders() {
       ${order.status !== 'COMPLETED' ? `
         <div class="kds-actions">
           ${order.status === 'RECEIVED' ? `
-            <button class="kds-btn kds-btn-accept" onclick="acceptOrder('${order.id}', ${stagedMins})" style="${stagedMins !== 10 ? 'background: #2563eb; box-shadow: 0 0 12px rgba(37,99,235,0.6);' : ''}">
+            <button class="kds-btn kds-btn-accept" onclick="acceptOrder('${order.id}', ${stagedMins})" style="${stagedMins !== 10 ? 'background: #0284c7; box-shadow: 0 0 12px rgba(2,132,199,0.5);' : ''}">
               注文を受ける（${stagedMins}分後に完成）
             </button>
           ` : ''}

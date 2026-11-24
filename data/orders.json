@@ -1,7 +1,7 @@
 [
   {
-    "id": "ord_1794724698731_8ncj",
-    "orderNumber": "9B9",
+    "id": "ord_1795531368721_w31b",
+    "orderNumber": "3WC",
     "items": [
       {
         "id": "ramen-regular",
@@ -32,8 +32,8 @@
     "lineUserId": null,
     "lineUserName": null,
     "status": "COOKING",
-    "createdAt": "2026-11-15T06:38:18.731Z",
-    "targetTimestamp": 1794725303916,
+    "createdAt": "2026-11-24T14:42:48.721Z",
+    "targetTimestamp": 1795531973781,
     "estimatedMinutes": 10,
     "readyAt": null,
     "userOrderStats": {
@@ -44,7 +44,893 @@
       "isContainerFree": false,
       "savedContainerFee": 0
     },
-    "estimatedTime": "15:48"
+    "estimatedTime": "23:52"
+  },
+  {
+    "id": "ord_1795527934533_xrm3",
+    "orderNumber": "U2E",
+    "items": [
+      {
+        "cartUid": "1795527931870_4bp3",
+        "id": "r4",
+        "name": "ブタミニラーメン",
+        "category": "ラーメン",
+        "price": 900,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ブタミニラーメン券",
+            "price": 900
+          }
+        ],
+        "freeToppings": [
+          "ニンニク",
+          "アブラ"
+        ],
+        "paidToppings": [
+          {
+            "id": "t1",
+            "name": "生たまご",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生たまご券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t2",
+            "name": "ショウガ",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "ショウガ券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t3",
+            "name": "魚粉",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "魚粉券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t4",
+            "name": "生唐辛子",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生唐辛子券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t5",
+            "name": "玉ねぎ",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "玉ねぎ券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t6",
+            "name": "粉チーズ",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "粉チーズ券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t7",
+            "name": "うずら味たま（5個）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "うずら味たま券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t8",
+            "name": "のり（4枚）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "のり券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          }
+        ],
+        "itemTotal": 1450
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ブタミニラーメン券",
+        "price": 900,
+        "quantity": 1,
+        "subtotal": 900
+      },
+      {
+        "name": "生たまご券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "ショウガ券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "魚粉券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "生唐辛子券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "玉ねぎ券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "粉チーズ券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      },
+      {
+        "name": "うずら味たま券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      },
+      {
+        "name": "のり券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      }
+    ],
+    "totalAmount": 1450,
+    "note": "",
+    "memo": "",
+    "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
+    "lineUserName": "森谷 勇樹",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-24T13:45:34.533Z",
+    "targetTimestamp": 1795528553766,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-24T13:45:59.869Z",
+    "userOrderStats": {
+      "totalCount": 4,
+      "monthlyCount": 4,
+      "totalBowlCount": 4,
+      "monthlyBowlCount": 4,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    },
+    "estimatedTime": "22:55"
+  },
+  {
+    "id": "ord_1795527894892_961x",
+    "orderNumber": "92M",
+    "items": [
+      {
+        "cartUid": "1795527891762_7ese",
+        "id": "j6",
+        "name": "汁なしブタラーメン",
+        "category": "汁なし",
+        "price": 1050,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ブタラーメン券",
+            "price": 950
+          },
+          {
+            "name": "汁なし券",
+            "price": 100
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "ニンニク",
+          "アブラ"
+        ],
+        "paidToppings": [
+          {
+            "id": "t1",
+            "name": "生たまご",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生たまご券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t4",
+            "name": "生唐辛子",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生唐辛子券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t5",
+            "name": "玉ねぎ",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "玉ねぎ券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t8",
+            "name": "のり（4枚）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "のり券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          }
+        ],
+        "itemTotal": 1400
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ブタラーメン券",
+        "price": 950,
+        "quantity": 1,
+        "subtotal": 950
+      },
+      {
+        "name": "汁なし券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      },
+      {
+        "name": "生たまご券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "生唐辛子券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "玉ねぎ券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "のり券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      }
+    ],
+    "totalAmount": 1400,
+    "note": "",
+    "memo": "",
+    "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
+    "lineUserName": "森谷 勇樹",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-24T13:44:54.892Z",
+    "targetTimestamp": 1795527964016,
+    "estimatedMinutes": 1,
+    "readyAt": "2026-11-24T13:45:08.539Z",
+    "userOrderStats": {
+      "totalCount": 3,
+      "monthlyCount": 3,
+      "totalBowlCount": 3,
+      "monthlyBowlCount": 3,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    },
+    "estimatedTime": "22:46"
+  },
+  {
+    "id": "ord_1795527855678_1i7i",
+    "orderNumber": "VB2",
+    "items": [
+      {
+        "cartUid": "1795527853405_ymol",
+        "id": "r4",
+        "name": "ブタミニラーメン",
+        "category": "ラーメン",
+        "price": 900,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ブタミニラーメン券",
+            "price": 900
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "アブラ"
+        ],
+        "paidToppings": [
+          {
+            "id": "t5",
+            "name": "玉ねぎ",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "玉ねぎ券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t7",
+            "name": "うずら味たま（5個）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "うずら味たま券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          }
+        ],
+        "itemTotal": 1150
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ブタミニラーメン券",
+        "price": 900,
+        "quantity": 1,
+        "subtotal": 900
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      },
+      {
+        "name": "玉ねぎ券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "うずら味たま券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      }
+    ],
+    "totalAmount": 1150,
+    "note": "",
+    "memo": "",
+    "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
+    "lineUserName": "森谷 勇樹",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-24T13:44:15.678Z",
+    "targetTimestamp": 1795528463936,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-24T13:44:26.180Z",
+    "userOrderStats": {
+      "totalCount": 2,
+      "monthlyCount": 2,
+      "totalBowlCount": 2,
+      "monthlyBowlCount": 2,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    },
+    "estimatedTime": "22:54"
+  },
+  {
+    "id": "ord_1795510686703_2w8j",
+    "orderNumber": "64X",
+    "items": [
+      {
+        "cartUid": "1795510683652_3pf4",
+        "id": "r3",
+        "name": "ラーメン",
+        "category": "ラーメン",
+        "price": 800,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ラーメン券",
+            "price": 800
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "ニンニク",
+          "アブラ"
+        ],
+        "paidToppings": [],
+        "itemTotal": 900
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ラーメン券",
+        "price": 800,
+        "quantity": 1,
+        "subtotal": 800
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      }
+    ],
+    "totalAmount": 900,
+    "note": "",
+    "memo": "",
+    "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
+    "lineUserName": "森谷 勇樹",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-24T08:58:06.703Z",
+    "targetTimestamp": 1795511316570,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-24T08:58:51.916Z",
+    "userOrderStats": {
+      "totalCount": 1,
+      "monthlyCount": 1,
+      "totalBowlCount": 1,
+      "monthlyBowlCount": 1,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    },
+    "estimatedTime": "18:08"
+  },
+  {
+    "id": "ord_1795498480263_ek2g",
+    "orderNumber": "Q29",
+    "items": [
+      {
+        "cartUid": "1795498464987_mjsy",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 750
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      }
+    ],
+    "totalAmount": 750,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U69406abb5ae8f031d38845eccfb1e975",
+    "lineUserName": "Ryu太郎",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-24T05:34:40.262Z",
+    "targetTimestamp": 1795498550591,
+    "estimatedMinutes": 1,
+    "readyAt": "2026-11-24T05:34:51.514Z",
+    "userOrderStats": {
+      "totalCount": 4,
+      "monthlyCount": 4,
+      "totalBowlCount": 4,
+      "monthlyBowlCount": 4,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    },
+    "estimatedTime": "14:35"
+  },
+  {
+    "id": "ord_1795498426824_487e",
+    "orderNumber": "N54",
+    "items": [
+      {
+        "cartUid": "1795498423932_7pij",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 850
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      }
+    ],
+    "totalAmount": 850,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U69406abb5ae8f031d38845eccfb1e975",
+    "lineUserName": "Ryu太郎",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-24T05:33:46.824Z",
+    "targetTimestamp": 1795498494292,
+    "estimatedMinutes": 1,
+    "readyAt": "2026-11-24T05:33:58.635Z",
+    "userOrderStats": {
+      "totalCount": 3,
+      "monthlyCount": 3,
+      "totalBowlCount": 3,
+      "monthlyBowlCount": 3,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    },
+    "estimatedTime": "14:34"
+  },
+  {
+    "id": "ord_1795498396286_2t53",
+    "orderNumber": "G8H",
+    "items": [
+      {
+        "cartUid": "1795498394175_d4ty",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 850
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      }
+    ],
+    "totalAmount": 850,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U69406abb5ae8f031d38845eccfb1e975",
+    "lineUserName": "Ryu太郎",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-24T05:33:16.286Z",
+    "targetTimestamp": 1795498999520,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-24T05:33:22.201Z",
+    "userOrderStats": {
+      "totalCount": 2,
+      "monthlyCount": 2,
+      "totalBowlCount": 2,
+      "monthlyBowlCount": 2,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    },
+    "estimatedTime": "14:43"
+  },
+  {
+    "id": "ord_1795498179572_nxt5",
+    "orderNumber": "QL5",
+    "items": [
+      {
+        "cartUid": "1795498163809_jaaq",
+        "id": "j6",
+        "name": "汁なしブタラーメン",
+        "category": "汁なし",
+        "price": 1050,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ブタラーメン券",
+            "price": 950
+          },
+          {
+            "name": "汁なし券",
+            "price": 100
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "ニンニク",
+          "アブラ"
+        ],
+        "paidToppings": [
+          {
+            "id": "t4",
+            "name": "生唐辛子",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生唐辛子券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t7",
+            "name": "うずら味たま（5個）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "うずら味たま券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          }
+        ],
+        "itemTotal": 1300
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ブタラーメン券",
+        "price": 950,
+        "quantity": 1,
+        "subtotal": 950
+      },
+      {
+        "name": "汁なし券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      },
+      {
+        "name": "生唐辛子券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "うずら味たま券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      }
+    ],
+    "totalAmount": 1300,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U69406abb5ae8f031d38845eccfb1e975",
+    "lineUserName": "Ryu太郎",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-24T05:29:39.572Z",
+    "targetTimestamp": 1795498797755,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-24T05:31:38.928Z",
+    "userOrderStats": {
+      "totalCount": 1,
+      "monthlyCount": 1,
+      "totalBowlCount": 1,
+      "monthlyBowlCount": 1,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    },
+    "estimatedTime": "14:39"
+  },
+  {
+    "id": "ord_1794725682142_xlvq",
+    "orderNumber": "9S8",
+    "items": [
+      {
+        "cartUid": "1794725677789_jvql",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 750
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      }
+    ],
+    "totalAmount": 750,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-15T06:54:42.142Z",
+    "targetTimestamp": 1794726301931,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-15T06:55:24.297Z",
+    "userOrderStats": {
+      "totalCount": 16,
+      "monthlyCount": 16,
+      "totalBowlCount": 16,
+      "monthlyBowlCount": 16,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    },
+    "estimatedTime": "16:05"
+  },
+  {
+    "id": "ord_1794724858905_su8h",
+    "orderNumber": "FD8",
+    "items": [
+      {
+        "cartUid": "1794724852200_3e2m",
+        "id": "r1",
+        "name": "ミニラーメン",
+        "category": "ラーメン",
+        "price": 750,
+        "containerFee": 0,
+        "requiredTickets": [
+          {
+            "name": "ミニラーメン券",
+            "price": 750
+          }
+        ],
+        "freeToppings": [],
+        "paidToppings": [],
+        "itemTotal": 750
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ミニラーメン券",
+        "price": 750,
+        "quantity": 1,
+        "subtotal": 750
+      }
+    ],
+    "totalAmount": 750,
+    "note": "",
+    "memo": "",
+    "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
+    "lineUserName": "terushige uchida",
+    "status": "COMPLETED",
+    "createdAt": "2026-11-15T06:40:58.905Z",
+    "targetTimestamp": 1794725519217,
+    "estimatedMinutes": 10,
+    "readyAt": "2026-11-15T06:53:34.310Z",
+    "userOrderStats": {
+      "totalCount": 15,
+      "monthlyCount": 15,
+      "totalBowlCount": 15,
+      "monthlyBowlCount": 15,
+      "isContainerFree": true,
+      "savedContainerFee": 100
+    },
+    "estimatedTime": "15:51"
   },
   {
     "id": "ord_1794724287382_r3z5",
@@ -81,11 +967,11 @@
     "memo": "",
     "lineUserId": "U4f4b1af4d8270722f1c111d55f78190d",
     "lineUserName": "terushige uchida",
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-15T06:31:27.382Z",
-    "targetTimestamp": 1794725303768,
+    "targetTimestamp": 1794725312459,
     "estimatedMinutes": 10,
-    "readyAt": null,
+    "readyAt": "2026-11-15T06:38:34.971Z",
     "userOrderStats": {
       "totalCount": 14,
       "monthlyCount": 14,
