@@ -1,5 +1,150 @@
 [
   {
+    "id": "ord_1795527894892_961x",
+    "orderNumber": "92M",
+    "items": [
+      {
+        "cartUid": "1795527891762_7ese",
+        "id": "j6",
+        "name": "汁なしブタラーメン",
+        "category": "汁なし",
+        "price": 1050,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ブタラーメン券",
+            "price": 950
+          },
+          {
+            "name": "汁なし券",
+            "price": 100
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "ニンニク",
+          "アブラ"
+        ],
+        "paidToppings": [
+          {
+            "id": "t1",
+            "name": "生たまご",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生たまご券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t4",
+            "name": "生唐辛子",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "生唐辛子券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t5",
+            "name": "玉ねぎ",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "玉ねぎ券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t8",
+            "name": "のり（4枚）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "のり券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          }
+        ],
+        "itemTotal": 1400
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ブタラーメン券",
+        "price": 950,
+        "quantity": 1,
+        "subtotal": 950
+      },
+      {
+        "name": "汁なし券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      },
+      {
+        "name": "生たまご券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "生唐辛子券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "玉ねぎ券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "のり券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      }
+    ],
+    "totalAmount": 1400,
+    "note": "",
+    "memo": "",
+    "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
+    "lineUserName": "森谷 勇樹",
+    "status": "RECEIVED",
+    "createdAt": "2026-11-24T13:44:54.892Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 3,
+      "monthlyCount": 3,
+      "totalBowlCount": 3,
+      "monthlyBowlCount": 3,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    }
+  },
+  {
     "id": "ord_1795527855678_1i7i",
     "orderNumber": "VB2",
     "items": [
