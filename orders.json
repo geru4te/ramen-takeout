@@ -34,11 +34,11 @@
     "memo": "",
     "lineUserId": "U69406abb5ae8f031d38845eccfb1e975",
     "lineUserName": "Ryu太郎",
-    "status": "COOKING",
+    "status": "COMPLETED",
     "createdAt": "2026-11-24T05:34:40.262Z",
     "targetTimestamp": 1795498550591,
     "estimatedMinutes": 1,
-    "readyAt": null,
+    "readyAt": "2026-11-24T05:34:51.514Z",
     "userOrderStats": {
       "totalCount": 4,
       "monthlyCount": 4,
