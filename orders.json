@@ -1,5 +1,103 @@
 [
   {
+    "id": "ord_1795527855678_1i7i",
+    "orderNumber": "VB2",
+    "items": [
+      {
+        "cartUid": "1795527853405_ymol",
+        "id": "r4",
+        "name": "ブタミニラーメン",
+        "category": "ラーメン",
+        "price": 900,
+        "containerFee": 100,
+        "requiredTickets": [
+          {
+            "name": "ブタミニラーメン券",
+            "price": 900
+          },
+          {
+            "name": "容器代券",
+            "price": 100
+          }
+        ],
+        "freeToppings": [
+          "アブラ"
+        ],
+        "paidToppings": [
+          {
+            "id": "t5",
+            "name": "玉ねぎ",
+            "price": 50,
+            "requiredTickets": [
+              {
+                "name": "玉ねぎ券",
+                "price": 50
+              }
+            ],
+            "soldOut": false
+          },
+          {
+            "id": "t7",
+            "name": "うずら味たま（5個）",
+            "price": 100,
+            "requiredTickets": [
+              {
+                "name": "うずら味たま券",
+                "price": 100
+              }
+            ],
+            "soldOut": false
+          }
+        ],
+        "itemTotal": 1150
+      }
+    ],
+    "tickets": [
+      {
+        "name": "ブタミニラーメン券",
+        "price": 900,
+        "quantity": 1,
+        "subtotal": 900
+      },
+      {
+        "name": "容器代券",
+        "price": 100,
+        "quantity": 2,
+        "subtotal": 200
+      },
+      {
+        "name": "玉ねぎ券",
+        "price": 50,
+        "quantity": 1,
+        "subtotal": 50
+      },
+      {
+        "name": "うずら味たま券",
+        "price": 100,
+        "quantity": 1,
+        "subtotal": 100
+      }
+    ],
+    "totalAmount": 1150,
+    "note": "",
+    "memo": "",
+    "lineUserId": "Uf916f15af3990d591f364c43580cdd6e",
+    "lineUserName": "森谷 勇樹",
+    "status": "RECEIVED",
+    "createdAt": "2026-11-24T13:44:15.678Z",
+    "targetTimestamp": null,
+    "estimatedMinutes": null,
+    "readyAt": null,
+    "userOrderStats": {
+      "totalCount": 2,
+      "monthlyCount": 2,
+      "totalBowlCount": 2,
+      "monthlyBowlCount": 2,
+      "isContainerFree": false,
+      "savedContainerFee": 0
+    }
+  },
+  {
     "id": "ord_1795510686703_2w8j",
     "orderNumber": "64X",
     "items": [
